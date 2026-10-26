@@ -1,0 +1,159 @@
+/* ==============================================================================
+   Smart City Environmental Intelligence Dashboard - Custom CSS
+   Professional Theme for VIT Vellore CSI3005 Lab Assessment
+   ============================================================================== */
+
+:root {
+  --primary-navy: #1E3A8A;
+  --secondary-slate: #475569;
+  --accent-teal: #0D9488;
+  --bg-light: #F8FAFC;
+  --card-bg: #FFFFFF;
+  --border-subtle: #E2E8F0;
+  --text-main: #0F172A;
+  --text-muted: #64748B;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Navbar Brand & Header */
+.navbar {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 0.75rem 1.5rem;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  color: #FFFFFF !important;
+}
+
+.nav-link {
+  font-weight: 500;
+  font-size: 0.92rem;
+  padding: 0.5rem 0.9rem !important;
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.status-badge-offline {
+  background-color: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FCD34D;
+}
+
+.status-badge-live {
+  background-color: #DCFCE7;
+  color: #166534;
+  border: 1px solid #86EFAC;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  display: inline-block;
+}
+
+.pulse-dot-amber {
+  background-color: #D97706;
+}
+
+.pulse-dot-green {
+  background-color: #16A34A;
+}
+
+/* KPI Metric Cards */
+.kpi-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  height: 100%;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+}
+
+.kpi-title {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.kpi-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-main);
+  margin-bottom: 0.35rem;
+}
+
+.kpi-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Analytical Interpretation Box */
+.interpretation-box {
+  background: #F1F5F9;
+  border-left: 4px solid var(--primary-navy);
+  padding: 0.85rem 1.1rem;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.88rem;
+  color: #334155;
+  margin-top: 0.75rem;
+  line-height: 1.5;
+}
+
+.interpretation-title {
+  font-weight: 600;
+  color: var(--primary-navy);
+  margin-bottom: 0.25rem;
+}
+
+/* Data Tables */
+.dataTables_wrapper {
+  font-size: 0.88rem;
+}
+
+table.dataTable thead th {
+  background-color: #F8FAFC;
+  font-weight: 600;
+  color: var(--secondary-slate);
+  border-bottom: 2px solid var(--border-subtle) !important;
+}
+
+/* Empty State / Notice Container */
+.notice-card {
+  background-color: #FFFFFF;
+  border: 1px dashed #CBD5E1;
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  margin: 1.5rem 0;
+}
