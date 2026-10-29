@@ -39,6 +39,8 @@ source("R/data_loader.R")
 source("R/data_validator.R")
 source("R/cpcb_subindex.R")
 source("R/data_collector.R")
+source("R/understand_chart.R")
+source("R/forecasting_engine.R")
 
 # 4. Global Variables & Baseline Data Ingestion
 # Load genuine CPCB dataset from data/air_quality.csv
@@ -57,12 +59,15 @@ WIDE_DATA <- WIDE_DATA_OBJ$wide_data
 WIDE_WITH_SUBINDICES <- compute_cpcb_subindices(WIDE_DATA)
 
 # 6. Source UI and Server Modules (Now that baseline datasets are initialized)
+source("R/assistant_engine.R")
 source("R/mod_overview.R")
 source("R/mod_map.R")
 source("R/mod_viz_studio.R")
 source("R/mod_quality.R")
 source("R/mod_trends.R")
 source("R/mod_reports.R")
+source("R/mod_assistant.R")
+source("R/mod_prediction.R")
 
 # Standard Pollutant Definitions and Units
 POLLUTANT_UNITS <- c(

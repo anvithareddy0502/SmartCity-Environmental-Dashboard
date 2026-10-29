@@ -22,17 +22,12 @@ mod_overview_ui <- function(id) {
     div(
       class = "container-fluid py-3",
       
-      # Data Provenance & Freshness Banner
+      # Page Title & Description
       div(
-        class = "alert alert-secondary d-flex align-items-center mb-3 py-2 px-3",
-        role = "alert",
-        icon("circle-info", class = "me-2 fs-5 text-primary"),
+        class = "d-flex justify-content-between align-items-baseline mb-3",
         div(
-          class = "small",
-          strong("Data Source: "), "Central Pollution Control Board (CPCB) via data.gov.in | ",
-          strong("Observation Time: "), "23-10-2026 18:00 IST | ",
-          strong("Dataset Status: "), span(class = "badge bg-warning text-dark", "Offline Baseline Snapshot"), " | ",
-          "Metrics represent genuine reported station observations. Static data is never labeled as live."
+          h4(class = "page-header-title", "Executive Overview"),
+          p(class = "page-header-subtitle", "Air quality monitoring summary across 526 continuous stations in India (CPCB dataset).")
         )
       ),
       
@@ -45,7 +40,7 @@ mod_overview_ui <- function(id) {
             width = 4,
             selectInput(
               inputId = ns("filter_state"),
-              label = tags$span(icon("map-pin", class = "me-1 text-primary"), "Filter by State / UT:"),
+              label = "State / UT:",
               choices = c("All States", sort(unique(BASE_DATA$state))),
               selected = "All States",
               width = "100%"
@@ -55,7 +50,7 @@ mod_overview_ui <- function(id) {
             width = 4,
             selectInput(
               inputId = ns("filter_city"),
-              label = tags$span(icon("city", class = "me-1 text-primary"), "Filter by City:"),
+              label = "City:",
               choices = c("All Cities", sort(unique(BASE_DATA$city))),
               selected = "All Cities",
               width = "100%"
@@ -65,7 +60,7 @@ mod_overview_ui <- function(id) {
             width = 3,
             selectInput(
               inputId = ns("filter_pollutant"),
-              label = tags$span(icon("smog", class = "me-1 text-primary"), "Criteria Pollutant:"),
+              label = "Pollutant:",
               choices = c(
                 "PM2.5" = "PM2.5",
                 "PM10"  = "PM10",
@@ -82,12 +77,11 @@ mod_overview_ui <- function(id) {
           column(
             width = 1,
             div(
-              style = "margin-top: 28px;",
+              style = "margin-top: 25px;",
               actionButton(
                 inputId = ns("btn_reset"),
-                label = "",
-                icon = icon("rotate-left"),
-                class = "btn-outline-secondary w-100",
+                label = "Reset",
+                class = "btn-outline-secondary btn-sm w-100",
                 title = "Reset Filters to National Overview"
               )
             )
@@ -154,16 +148,17 @@ mod_overview_ui <- function(id) {
             class = "card p-3 shadow-sm border-0 h-100",
             div(
               class = "d-flex justify-content-between align-items-center mb-2",
-              h6(class = "card-title text-primary m-0", icon("map-location-dot", class = "me-2"), "Geographic Distribution of Monitoring Stations"),
+              h6(class = "card-title text-primary m-0", "Monitoring Stations Map"),
               span(class = "badge bg-light text-secondary border", textOutput(ns("map_count_badge"), inline = TRUE))
             ),
-            p(class = "small text-muted mb-2", "Markers colored by indicative CPCB category. Grey circles indicate offline/missing readings for the selected pollutant. Click markers for details."),
+            p(class = "small text-muted mb-2", "Markers colored by indicative CPCB category. Grey circles indicate missing measurements. Click markers for details."),
             leafletOutput(ns("overview_map"), height = "420px"),
             div(
               class = "small text-muted mt-2 d-flex justify-content-between",
-              span("Tile: Esri Light Gray Canvas & OpenStreetMap (No API Key Required)"),
-              span("Coordinates: All validated within Indian territorial bounds")
-            )
+              span("Basemap: OpenStreetMap & CartoDB Positron"),
+              span("All 526 stations verified within Indian bounds")
+            ),
+            uiOutput(ns("understand_overview_map"))
           )
         ),
         column(
@@ -172,16 +167,12 @@ mod_overview_ui <- function(id) {
             class = "card p-3 shadow-sm border-0 h-100",
             div(
               class = "d-flex justify-content-between align-items-center mb-2",
-              h6(class = "card-title text-primary m-0", icon("chart-simple", class = "me-2"), textOutput(ns("chart_rank_title"), inline = TRUE)),
-              span(class = "badge bg-light text-secondary border", "Top 15 Ranked")
+              h6(class = "card-title text-primary m-0", textOutput(ns("chart_rank_title"), inline = TRUE)),
+              span(class = "badge bg-light text-secondary border", "Top 15")
             ),
             p(class = "small text-muted mb-2", textOutput(ns("chart_rank_subtitle"))),
             plotlyOutput(ns("rank_bar_chart"), height = "420px"),
-            div(
-              class = "interpretation-box mt-2 py-1 px-2 small",
-              icon("circle-info", class = "me-1 text-primary"),
-              "Ranked strictly by reported concentration in this snapshot. Does not imply regulatory non-compliance without 24-hr continuous sampling."
-            )
+            uiOutput(ns("understand_rank_bar"))
           )
         )
       ),
@@ -196,16 +187,12 @@ mod_overview_ui <- function(id) {
             class = "card p-3 shadow-sm border-0 h-100",
             div(
               class = "d-flex justify-content-between align-items-center mb-2",
-              h6(class = "card-title text-primary m-0", icon("chart-pie", class = "me-2"), "CPCB Indicative Category Breakdown"),
+              h6(class = "card-title text-primary m-0", "Air Quality Category Breakdown"),
               span(class = "badge bg-light text-secondary border", textOutput(ns("cpcb_eligible_badge"), inline = TRUE))
             ),
-            p(class = "small text-muted mb-2", "Distribution of indicative sub-index categories across eligible stations (requires ≥3 pollutants, ≥1 particulate)."),
+            p(class = "small text-muted mb-2", "Distribution of indicative categories across eligible stations (≥3 pollutants, ≥1 particulate)."),
             plotlyOutput(ns("cpcb_donut_chart"), height = "360px"),
-            div(
-              class = "interpretation-box mt-2 py-1 px-2 small",
-              strong("Methodological Disclosure: "),
-              "CPCB regulatory AQI requires 24-hour continuous rolling averages with ≥16 valid hourly readings. Snapshot sub-indices reflect instantaneous relative severity only."
-            )
+            uiOutput(ns("understand_cpcb_donut"))
           )
         ),
         column(
@@ -214,14 +201,14 @@ mod_overview_ui <- function(id) {
             class = "card p-3 shadow-sm border-0 h-100",
             div(
               class = "d-flex justify-content-between align-items-center mb-2",
-              h6(class = "card-title text-primary m-0", icon("table-list", class = "me-2"), "Criteria Pollutant Summary (Reported Station Averages)"),
+              h6(class = "card-title text-primary m-0", "Pollutant Summary & Completeness"),
               span(class = "badge bg-light text-secondary border", "7 Criteria Pollutants")
             ),
-            p(class = "small text-muted mb-2", "Summary statistics across filtered stations. Missing values are preserved as NA without zero-substitution."),
+            p(class = "small text-muted mb-2", "Summary statistics across filtered stations. Missing values are preserved as NA."),
             DTOutput(ns("pollutant_summary_table")),
             div(
               class = "small text-muted mt-2",
-              "Aggregations: Computed from valid station readings. Minimum, Median, Mean, and Maximum reported values."
+              "Aggregations: Min, Median, Mean, and Max from valid station readings."
             )
           )
         )
@@ -235,8 +222,8 @@ mod_overview_ui <- function(id) {
           width = 7,
           div(
             class = "card p-3 shadow-sm border-0 h-100",
-            h6(class = "card-title text-primary mb-2", icon("microscope", class = "me-2"), "Evidence-Based Analytical Findings (Computed from Data)"),
-            p(class = "small text-muted", "The following empirical findings are dynamically calculated from the filtered baseline snapshot:"),
+            h6(class = "card-title text-primary mb-2", "Key Findings"),
+            p(class = "small text-muted", "Summary observations calculated from filtered baseline data:"),
             uiOutput(ns("insights_container"))
           )
         ),
@@ -244,8 +231,8 @@ mod_overview_ui <- function(id) {
           width = 5,
           div(
             class = "card p-3 shadow-sm border-0 h-100",
-            h6(class = "card-title text-primary mb-2", icon("shield-halved", class = "me-2"), "Data Quality & Telemetry Audit"),
-            p(class = "small text-muted", "Sensor health and reporting completeness across the filtered subset:"),
+            h6(class = "card-title text-primary mb-2", "Data Quality Summary"),
+            p(class = "small text-muted", "Reporting completeness and sensor status across selection:"),
             uiOutput(ns("quality_audit_container"))
           )
         )
@@ -261,10 +248,11 @@ mod_overview_server <- function(id) {
     
     # 1. Cascading Filter Logic: Update City Choices when State Changes
     observeEvent(input$filter_state, {
+      req(input$filter_state)
       selected_state <- input$filter_state
-      current_city <- input$filter_city
+      current_city <- if (!is.null(input$filter_city) && length(input$filter_city) > 0) input$filter_city else "All Cities"
       
-      if (selected_state == "All States") {
+      if (identical(selected_state, "All States")) {
         cities <- c("All Cities", sort(unique(BASE_DATA$city)))
       } else {
         cities <- c("All Cities", sort(unique(BASE_DATA$city[BASE_DATA$state == selected_state])))
@@ -416,16 +404,99 @@ mod_overview_server <- function(id) {
     
     # 4. Interactive Leaflet Map
     output$overview_map <- renderLeaflet({
-      leaflet(options = leafletOptions(minZoom = 3, maxZoom = 14)) %>%
-        addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Light Canvas (Esri)") %>%
-        addTiles(group = "OpenStreetMap") %>%
-        addProviderTiles(providers$Esri.WorldStreetMap, group = "Street Map (Esri)") %>%
-        setView(lng = 78.9629, lat = 22.5937, zoom = 4) %>%
+      df_stations <- isolate(filtered_wide())
+      pol <- isolate(curr_pollutant())
+      unit <- ifelse(pol == "CO", "mg/m³", "µg/m³")
+      
+      cat_colors <- c(
+        "Good"                 = "#00B050",
+        "Satisfactory"         = "#92D050",
+        "Moderate"             = "#D4AC0D",
+        "Poor"                 = "#E67E22",
+        "Very Poor"            = "#C0392B",
+        "Severe"               = "#7D3C98",
+        "Ineligible / Offline" = "#94A3B8"
+      )
+      
+      m <- leaflet(options = leafletOptions(minZoom = 3, maxZoom = 14)) %>%
+        addTiles(group = "OpenStreetMap (Standard)") %>%
+        addProviderTiles("CartoDB.Positron", group = "CartoDB Positron") %>%
+        addProviderTiles("CartoDB.Voyager", group = "CartoDB Voyager") %>%
+        addProviderTiles("Esri.WorldStreetMap", group = "Esri World Street") %>%
+        fitBounds(lng1 = 68.5, lat1 = 7.5, lng2 = 97.5, lat2 = 35.5) %>%
         addLayersControl(
-          baseGroups = c("Light Canvas (Esri)", "OpenStreetMap", "Street Map (Esri)"),
+          baseGroups = c("OpenStreetMap (Standard)", "CartoDB Positron", "CartoDB Voyager", "Esri World Street"),
           options = layersControlOptions(collapsed = TRUE)
         )
+      
+      if (nrow(df_stations) > 0) {
+        marker_colors <- sapply(seq_len(nrow(df_stations)), function(i) {
+          pol_val <- df_stations[[pol]][i]
+          cat_val <- df_stations$indicative_category[i]
+          if (is.na(pol_val) || is.na(cat_val)) {
+            return("#94A3B8")
+          }
+          if (cat_val %in% names(cat_colors)) cat_colors[[cat_val]] else "#94A3B8"
+        })
+        
+        popups <- sapply(seq_len(nrow(df_stations)), function(i) {
+          st_name <- df_stations$station[i]
+          cty <- df_stations$city[i]
+          stt <- df_stations$state[i]
+          pol_val <- df_stations[[pol]][i]
+          cat_val <- df_stations$indicative_category[i]
+          dom_pol <- df_stations$dominant_pollutant[i]
+          ind_aqi <- df_stations$indicative_aqi[i]
+          
+          pol_display <- if (is.na(pol_val)) {
+            "<span style='color:#DC2626; font-weight:600;'>Measurement Unavailable (NA)</span>"
+          } else {
+            paste0("<strong>", pol_val, "</strong> ", unit)
+          }
+          
+          aqi_display <- if (is.na(ind_aqi)) {
+            "<span style='color:#64748B;'>Ineligible for AQI (&lt;3 pollutants or missing particulate)</span>"
+          } else {
+            paste0("<strong>", ind_aqi, "</strong> (", cat_val, ", Driven by ", dom_pol, ")")
+          }
+          
+          paste0(
+            "<div style='font-family: sans-serif; font-size: 13px; line-height: 1.4;'>",
+            "<div style='font-weight: 700; color: #1E3A8A; font-size: 14px;'>", st_name, "</div>",
+            "<div style='color: #475569; margin-bottom: 6px;'>", cty, ", ", stt, "</div>",
+            "<hr style='margin: 4px 0;'/>",
+            "<div><strong>Selected Pollutant (", pol, "): </strong>", pol_display, "</div>",
+            "<div><strong>Indicative Sub-Index: </strong>", aqi_display, "</div>",
+            "<div style='font-size: 11px; color: #94A3B8; margin-top: 4px;'>Source Timestamp: 23-10-2026 18:00 IST</div>",
+            "</div>"
+          )
+        })
+        
+        m <- m %>%
+          addCircleMarkers(
+            data = df_stations,
+            lng = ~longitude,
+            lat = ~latitude,
+            radius = 6,
+            fillColor = marker_colors,
+            fillOpacity = 0.85,
+            color = "#FFFFFF",
+            weight = 1.2,
+            popup = popups,
+            label = ~paste0(station, " (", city, ")")
+          ) %>%
+          addLegend(
+            position = "bottomright",
+            colors = unname(cat_colors),
+            labels = names(cat_colors),
+            title = "Indicative Category",
+            opacity = 0.9
+          )
+      }
+      
+      m
     })
+    outputOptions(output, "overview_map", suspendWhenHidden = FALSE)
     
     # Update Leaflet Map markers reactively
     observe({
@@ -434,18 +505,18 @@ mod_overview_server <- function(id) {
       unit <- ifelse(pol == "CO", "mg/m³", "µg/m³")
       
       if (nrow(df_stations) == 0) {
-        leafletProxy("overview_map") %>% clearMarkers() %>% clearShapes()
+        leafletProxy("overview_map") %>% clearMarkers() %>% clearShapes() %>% clearControls()
         return()
       }
       
       # Accessible CPCB color palette
       cat_colors <- c(
-        "Good"         = "#00B050",
-        "Satisfactory" = "#92D050",
-        "Moderate"     = "#D4AC0D",
-        "Poor"         = "#E67E22",
-        "Very Poor"    = "#C0392B",
-        "Severe"       = "#7D3C98",
+        "Good"                 = "#00B050",
+        "Satisfactory"         = "#92D050",
+        "Moderate"             = "#D4AC0D",
+        "Poor"                 = "#E67E22",
+        "Very Poor"            = "#C0392B",
+        "Severe"               = "#7D3C98",
         "Ineligible / Offline" = "#94A3B8"
       )
       
@@ -536,7 +607,7 @@ mod_overview_server <- function(id) {
           )
         }
       } else {
-        proxy %>% setView(lng = 78.9629, lat = 22.5937, zoom = 4)
+        proxy %>% fitBounds(lng1 = 68.5, lat1 = 7.5, lng2 = 97.5, lat2 = 35.5)
       }
     })
     
@@ -647,9 +718,157 @@ mod_overview_server <- function(id) {
       fig
     })
     
+    # 6a. Understand This Chart: Overview Map
+    output$understand_overview_map <- renderUI({
+      df_stations <- filtered_wide()
+      pol <- curr_pollutant()
+      unit <- ifelse(pol == "CO", "mg/m³", "µg/m³")
+      
+      if (nrow(df_stations) == 0) {
+        finding <- "No monitoring stations match the active filter criteria."
+      } else {
+        valid_df <- df_stations %>% filter(!is.na(.data[[pol]]))
+        valid_n <- nrow(valid_df)
+        miss_n <- nrow(df_stations) - valid_n
+        
+        if (valid_n > 0) {
+          max_stn <- valid_df %>% arrange(desc(.data[[pol]])) %>% head(1)
+          min_stn <- valid_df %>% arrange(.data[[pol]]) %>% head(1)
+          finding <- paste0(
+            "Across ", nrow(df_stations), " filtered stations (", valid_n, " reporting, ", miss_n, " offline), ",
+            "the highest reported ", pol, " average is recorded at ", max_stn$station, " in ", max_stn$city, ", ", max_stn$state,
+            " (", max_stn[[pol]], " ", unit, "), while the lowest is at ", min_stn$station, " in ", min_stn$city,
+            " (", min_stn[[pol]], " ", unit, ")."
+          )
+        } else {
+          finding <- paste0(
+            "All ", nrow(df_stations), " stations in the current selection have missing or offline sensors for ", pol,
+            " (preserved as NA)."
+          )
+        }
+      }
+      
+      build_understand_chart(
+        chart_type = "Geographic Map (Leaflet)",
+        what_shows = paste0(
+          "Displays continuous ambient air quality monitoring stations across India positioned by verified GPS coordinates. ",
+          "Shows the spatial distribution of ", pol, " and identifies regional pollution hotspots across states."
+        ),
+        how_to_read = paste0(
+          "Circle markers denote station locations. Click any marker to open a detailed telemetry popup with coordinates, ",
+          "pollutant readings, and indicative AQI. Use the top-right layer switcher to toggle between OpenStreetMap, CartoDB, and Esri basemaps."
+        ),
+        colors_meaning = paste0(
+          "Marker colors represent official CPCB Air Quality Index health categories: ",
+          "Green (Good: 0–50), Light Green (Satisfactory: 51–100), Yellow (Moderate: 101–200), Orange (Poor: 201–300), ",
+          "Red (Very Poor: 301–400), and Purple (Severe: 401–500). Grey circles denote offline sensors or missing readings."
+        ),
+        dynamic_findings = finding,
+        important_note = paste0(
+          "Observations represent a single snapshot baseline (23 Oct 2026, 18:00 IST). ",
+          "Official CPCB regulatory non-compliance requires 24-hour continuous rolling sampling with ≥16 valid hourly averages. ",
+          "Sub-indices shown here indicate snapshot severity, not certified annual averages."
+        )
+      )
+    })
+    
+    # 6b. Understand This Chart: Ranked Bar Chart
+    output$understand_rank_bar <- renderUI({
+      pol <- curr_pollutant()
+      unit <- ifelse(pol == "CO", "mg/m³", "µg/m³")
+      rank_df <- filtered_long() %>%
+        filter(pollutant_id == pol, !is.na(pollutant_avg)) %>%
+        arrange(desc(pollutant_avg)) %>%
+        head(15)
+      
+      if (nrow(rank_df) == 0) {
+        finding <- paste0("No stations currently report valid measurements for ", pol, " within the active filter scope.")
+      } else {
+        top1 <- rank_df[1, ]
+        last_item <- rank_df[nrow(rank_df), ]
+        finding <- paste0(
+          top1$station, " in ", top1$city, " ranks highest with a reported average ", pol, " of ",
+          top1$pollutant_avg, " ", unit, ". ",
+          if (nrow(rank_df) > 1) {
+            paste0("Across the top ", nrow(rank_df), " locations, readings range from ", top1$pollutant_avg, " down to ", last_item$pollutant_avg, " ", unit, ".")
+          } else ""
+        )
+      }
+      
+      build_understand_chart(
+        chart_type = "Horizontal Bar Chart",
+        what_shows = paste0(
+          "Ranks monitoring stations reporting the highest average concentrations for ", pol, " in the filtered area. ",
+          "Suitable for identifying top localized pollution hotspots."
+        ),
+        how_to_read = paste0(
+          "The horizontal axis measures reported average concentration in ", unit, ". ",
+          "The vertical axis lists station names and cities sorted from highest (top) to lowest (bottom). Hover over any bar to see exact values."
+        ),
+        colors_meaning = "Bars use a sequential magma color gradient where darker, deeper tones indicate higher concentrations.",
+        dynamic_findings = finding,
+        important_note = paste0(
+          "Shows snapshot reported values. Elevated hourly concentrations indicate localized acute episodes ",
+          "and cannot prove persistent regulatory violations without 24-hour continuous sampling."
+        )
+      )
+    })
+    
+    # 6c. Understand This Chart: CPCB Donut Chart
+    output$understand_cpcb_donut <- renderUI({
+      w <- filtered_wide()
+      eligible_df <- w %>% filter(cpcb_eligible, !is.na(indicative_category))
+      total_w <- nrow(w)
+      n_elig <- nrow(eligible_df)
+      n_inelig <- total_w - n_elig
+      
+      if (n_elig == 0) {
+        finding <- "None of the currently selected stations meet national CPCB eligibility criteria (≥3 pollutants including at least 1 particulate parameter)."
+      } else {
+        cat_tbl <- sort(table(eligible_df$indicative_category), decreasing = TRUE)
+        top_cat <- names(cat_tbl)[1]
+        top_n <- as.numeric(cat_tbl[1])
+        top_pct <- round(100 * top_n / n_elig, 1)
+        
+        finding <- paste0(
+          top_cat, " is the dominant category, representing ", top_n, " of ", n_elig, " eligible stations (", top_pct, "%). ",
+          if (length(cat_tbl) > 1) {
+            paste0(names(cat_tbl)[2], " follows with ", as.numeric(cat_tbl[2]), " stations (", round(100 * as.numeric(cat_tbl[2]) / n_elig, 1), "%). ")
+          } else "",
+          if (n_inelig > 0) paste0(n_inelig, " stations are ineligible due to incomplete criteria pollutant telemetry.") else ""
+        )
+      }
+      
+      build_understand_chart(
+        chart_type = "Donut Chart",
+        what_shows = "Displays the proportional breakdown of monitoring stations across official CPCB air quality severity categories for stations meeting national eligibility rules.",
+        how_to_read = "Each circular arc corresponds to the percentage share of eligible stations. Hover over any segment to inspect exact station counts and percentage breakdown.",
+        colors_meaning = "Colors align with official CPCB health standards: Green (Good), Light Green (Satisfactory), Yellow (Moderate), Orange (Poor), Red (Very Poor), Purple (Severe), and Grey (Ineligible).",
+        dynamic_findings = finding,
+        important_note = "CPCB NAQI guidelines require at least 3 pollutants with at least one particulate parameter (PM2.5 or PM10). Stations missing particulate data are excluded to prevent misleading scores."
+      )
+    })
+    
     # 7. Criteria Pollutant Summary DT Table
     output$pollutant_summary_table <- renderDT({
       df <- filtered_long()
+      
+      if (nrow(df) == 0) {
+        empty_table <- data.frame(
+          Pollutant = character(0),
+          `Monitored Stations` = integer(0),
+          `Valid Readings` = integer(0),
+          `Missing / Offline` = integer(0),
+          Completeness = character(0),
+          Min = numeric(0),
+          Median = numeric(0),
+          Mean = numeric(0),
+          Max = numeric(0),
+          Unit = character(0),
+          check.names = FALSE
+        )
+        return(datatable(empty_table, options = list(dom = "t"), rownames = FALSE))
+      }
       
       summary_df <- df %>%
         group_by(pollutant_id) %>%

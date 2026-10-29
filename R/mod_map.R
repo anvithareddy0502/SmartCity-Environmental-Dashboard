@@ -23,18 +23,11 @@ mod_map_ui <- function(id) {
     div(
       class = "container-fluid py-3",
       
-      # Top Provenance & Freshness Status Banner
+      # Clean Page Header
       div(
-        class = "alert alert-secondary d-flex align-items-center mb-3 py-2 px-3",
-        role = "alert",
-        icon("circle-info", class = "me-2 fs-5 text-primary"),
-        div(
-          class = "small",
-          strong("Spatial Data Source: "), "Central Pollution Control Board (CPCB) CAAQM Network via data.gov.in | ",
-          strong("Observation Time: "), "23-10-2026 18:00 IST | ",
-          strong("Mode: "), span(class = "badge bg-warning text-dark", "CPCB Offline Baseline Snapshot"), " | ",
-          "All 526 station coordinates validated within Indian subcontinental bounds. Missing readings preserved as NA."
-        )
+        class = "page-header-container mb-3",
+        h4(class = "page-header-title", "Geographic Hotspots"),
+        p(class = "page-header-sub", "Station-level air quality observations across India.")
       ),
       
       # Interactive Geographic Filter Bar
@@ -46,7 +39,7 @@ mod_map_ui <- function(id) {
             width = 3,
             selectInput(
               inputId = ns("map_filter_state"),
-              label = tags$span(icon("map-location", class = "me-1 text-primary"), "State / Union Territory:"),
+              label = "State / UT:",
               choices = c("All States", sort(unique(BASE_DATA$state))),
               selected = "All States",
               width = "100%"
@@ -56,7 +49,7 @@ mod_map_ui <- function(id) {
             width = 3,
             selectInput(
               inputId = ns("map_filter_city"),
-              label = tags$span(icon("city", class = "me-1 text-primary"), "City:"),
+              label = "City:",
               choices = c("All Cities", sort(unique(BASE_DATA$city))),
               selected = "All Cities",
               width = "100%"
@@ -66,7 +59,7 @@ mod_map_ui <- function(id) {
             width = 2,
             selectInput(
               inputId = ns("map_filter_pollutant"),
-              label = tags$span(icon("smog", class = "me-1 text-primary"), "Pollutant Layer:"),
+              label = "Pollutant:",
               choices = c(
                 "PM2.5" = "PM2.5",
                 "PM10"  = "PM10",
@@ -84,7 +77,7 @@ mod_map_ui <- function(id) {
             width = 2,
             selectInput(
               inputId = ns("map_filter_category"),
-              label = tags$span(icon("layer-group", class = "me-1 text-primary"), "Indicative Category:"),
+              label = "Indicative category:",
               choices = c(
                 "All Categories",
                 "Good (0-50)" = "Good",
@@ -105,7 +98,7 @@ mod_map_ui <- function(id) {
               style = "margin-top: 28px;",
               actionButton(
                 inputId = ns("btn_map_reset"),
-                label = " Reset Filters",
+                label = "Reset filters",
                 icon = icon("rotate-left"),
                 class = "btn btn-outline-secondary w-100",
                 title = "Reset geographic filters to National Overview"
@@ -120,13 +113,13 @@ mod_map_ui <- function(id) {
         class = "d-flex justify-content-between align-items-center mb-2 px-1",
         div(
           class = "d-flex align-items-center gap-3",
-          span(class = "fw-bold small text-secondary", icon("palette", class = "me-1"), "Marker Color Scheme:"),
+          span(class = "small text-secondary fw-semibold", "Marker color scheme:"),
           radioButtons(
             inputId = ns("map_color_mode"),
             label = NULL,
             choices = c(
-              "Pollutant Concentration Gradient" = "conc",
-              "CPCB Indicative Category (Official Breakpoints)" = "cpcb"
+              "Concentration gradient" = "conc",
+              "CPCB indicative category" = "cpcb"
             ),
             selected = "conc",
             inline = TRUE
@@ -146,7 +139,7 @@ mod_map_ui <- function(id) {
             class = "card p-3 shadow-sm border-0 h-100",
             div(
               class = "d-flex justify-content-between align-items-center mb-2",
-              h6(class = "card-title text-primary m-0", icon("earth-asia", class = "me-2"), "Spatial Monitoring Network Map of India"),
+              h6(class = "card-title m-0", "Monitoring Network Map"),
               div(
                 span(class = "badge bg-primary text-white me-1", textOutput(ns("valid_stations_badge"), inline = TRUE)),
                 span(class = "badge bg-light text-secondary border", textOutput(ns("missing_stations_badge"), inline = TRUE))
@@ -156,9 +149,10 @@ mod_map_ui <- function(id) {
             leafletOutput(ns("hotspot_map"), height = "560px"),
             div(
               class = "d-flex justify-content-between align-items-center small text-muted mt-2",
-              span("Scale bar: Bottom-Left | Tiles: Esri Light Gray Canvas, OSM, Esri Streets (No API Key Required)"),
+              span("Scale bar: Bottom-Left | Basemap: OpenStreetMap & CartoDB Positron (No API Key Required)"),
               span(icon("circle-info", class = "me-1 text-primary"), "Grey circles indicate sensor offline or missing measurement for the selected pollutant")
-            )
+            ),
+            uiOutput(ns("understand_hotspot_map"))
           )
         ),
         
@@ -169,7 +163,7 @@ mod_map_ui <- function(id) {
             class = "card p-3 shadow-sm border-0 h-100",
             div(
               class = "d-flex justify-content-between align-items-center mb-2",
-              h6(class = "card-title text-primary m-0", icon("satellite-dish", class = "me-2"), "Station Telemetry & Profile"),
+              h6(class = "card-title m-0", "Station Telemetry & Profile"),
               span(class = "badge bg-light text-primary border", "Detailed Inspection")
             ),
             
@@ -181,14 +175,15 @@ mod_map_ui <- function(id) {
             # Ranked Comparison Mini Chart
             div(
               class = "d-flex justify-content-between align-items-center mb-1",
-              h6(class = "card-title text-secondary m-0 small fw-bold", icon("chart-bar", class = "me-1"), textOutput(ns("ranked_chart_title"), inline = TRUE)),
+              h6(class = "card-title text-secondary m-0 small fw-bold", textOutput(ns("ranked_chart_title"), inline = TRUE)),
               span(class = "badge bg-light text-secondary border small", "Selected Area Top Ranked")
             ),
             plotlyOutput(ns("ranked_stations_chart"), height = "230px"),
             div(
               class = "small text-muted mt-1 fst-italic",
               "Clicking any bar or table row focuses the map on that station."
-            )
+            ),
+            uiOutput(ns("understand_ranked_stations"))
           )
         )
       ),
@@ -203,7 +198,7 @@ mod_map_ui <- function(id) {
             class = "card p-3 shadow-sm border-0",
             div(
               class = "d-flex justify-content-between align-items-center mb-2",
-              h6(class = "card-title text-primary m-0", icon("table", class = "me-2"), "Filtered Monitoring Stations Directory"),
+              h6(class = "card-title m-0", "Monitoring Stations Directory"),
               span(class = "badge bg-light text-secondary border", textOutput(ns("table_station_count_badge"), inline = TRUE))
             ),
             p(class = "small text-muted mb-2", "Search, sort, or select a station row to view full telemetry. Missing values are preserved as genuine NAs."),
@@ -246,10 +241,11 @@ mod_map_server <- function(id) {
     
     # 2. Cascading City Filter Update
     observeEvent(input$map_filter_state, {
+      req(input$map_filter_state)
       st <- curr_state()
       ct <- curr_city()
       
-      if (st == "All States") {
+      if (identical(st, "All States")) {
         cities <- c("All Cities", sort(unique(BASE_DATA$city)))
       } else {
         cities <- c("All Cities", sort(unique(BASE_DATA$city[BASE_DATA$state == st])))
@@ -346,25 +342,155 @@ mod_map_server <- function(id) {
     
     # 5. Base Leaflet Map Initialization
     output$hotspot_map <- renderLeaflet({
-      leaflet(options = leafletOptions(minZoom = 3, maxZoom = 15)) %>%
-        addProviderTiles(providers$Esri.WorldGrayCanvas, group = "Light Canvas (Esri)") %>%
+      df <- isolate(filtered_map_data())
+      pol <- isolate(curr_pollutant())
+      mode <- isolate(curr_color_mode())
+      unit <- ifelse(pol == "CO", "mg/m³", "µg/m³")
+      sel_stn <- isolate(selected_station_name())
+      
+      cpcb_colors <- c(
+        "Good"                 = "#00B050",
+        "Satisfactory"         = "#92D050",
+        "Moderate"             = "#D4AC0D",
+        "Poor"                 = "#E67E22",
+        "Very Poor"            = "#C0392B",
+        "Severe"               = "#7D3C98",
+        "Ineligible / Offline" = "#94A3B8"
+      )
+      
+      m <- leaflet(options = leafletOptions(minZoom = 3, maxZoom = 15)) %>%
         addTiles(group = "OpenStreetMap (Standard)") %>%
-        addProviderTiles(providers$Esri.WorldStreetMap, group = "Street Map (Esri)") %>%
+        addProviderTiles("CartoDB.Positron", group = "CartoDB Positron") %>%
+        addProviderTiles("CartoDB.Voyager", group = "CartoDB Voyager") %>%
+        addProviderTiles("Esri.WorldStreetMap", group = "Esri World Street") %>%
         addScaleBar(position = "bottomleft", options = scaleBarOptions(imperial = FALSE)) %>%
-        setView(lng = 78.9629, lat = 22.5937, zoom = 4) %>%
+        fitBounds(lng1 = 68.5, lat1 = 7.5, lng2 = 97.5, lat2 = 35.5) %>%
         addLayersControl(
-          baseGroups = c("Light Canvas (Esri)", "OpenStreetMap (Standard)", "Street Map (Esri)"),
+          baseGroups = c("OpenStreetMap (Standard)", "CartoDB Positron", "CartoDB Voyager", "Esri World Street"),
           options = layersControlOptions(collapsed = TRUE)
         )
+      
+      if (nrow(df) > 0) {
+        pol_vals <- df[[pol]]
+        valid_vals <- na.omit(pol_vals)
+        
+        if (mode == "conc") {
+          if (length(valid_vals) > 0) {
+            min_v <- min(valid_vals)
+            max_v <- max(valid_vals)
+            if (min_v == max_v) max_v <- min_v + 1
+            pal_num <- colorNumeric(
+              palette = "plasma",
+              domain = c(min_v, max_v),
+              na.color = "#94A3B8"
+            )
+            marker_colors <- ifelse(is.na(pol_vals), "#94A3B8", pal_num(pol_vals))
+            m <- m %>% addLegend(
+              position = "bottomright",
+              pal = pal_num,
+              values = c(min_v, max_v),
+              title = paste0(pol, " (", unit, ")"),
+              opacity = 0.9,
+              labFormat = labelFormat(suffix = paste0(" ", unit))
+            )
+          } else {
+            marker_colors <- rep("#94A3B8", nrow(df))
+          }
+        } else {
+          marker_colors <- sapply(seq_len(nrow(df)), function(i) {
+            cat_val <- df$indicative_category[i]
+            if (is.na(pol_vals[i]) || !df$cpcb_eligible[i] || is.na(cat_val)) {
+              return("#94A3B8")
+            }
+            if (cat_val %in% names(cpcb_colors)) cpcb_colors[[cat_val]] else "#94A3B8"
+          })
+          m <- m %>% addLegend(
+            position = "bottomright",
+            colors = unname(cpcb_colors),
+            labels = names(cpcb_colors),
+            title = "Indicative Category",
+            opacity = 0.9
+          )
+        }
+        
+        popups <- sapply(seq_len(nrow(df)), function(i) {
+          st_name <- df$station[i]
+          cty <- df$city[i]
+          stt <- df$state[i]
+          lat_v <- round(df$latitude[i], 4)
+          lon_v <- round(df$longitude[i], 4)
+          v <- pol_vals[i]
+          ind_aqi <- df$indicative_aqi[i]
+          ind_cat <- df$indicative_category[i]
+          dom_pol <- df$dominant_pollutant[i]
+          
+          val_str <- if (is.na(v)) {
+            "<span style='color: #DC2626; font-weight: 600;'>Sensor Offline / NA</span>"
+          } else {
+            paste0("<strong>", v, "</strong> ", unit)
+          }
+          
+          aqi_str <- if (!df$cpcb_eligible[i] || is.na(ind_aqi)) {
+            "<span style='color: #64748B;'>Ineligible (&lt;3 pollutants or missing particulate)</span>"
+          } else {
+            paste0("<strong>", ind_aqi, "</strong> (", ind_cat, ", Dom: ", dom_pol, ")")
+          }
+          
+          paste0(
+            "<div style='font-family: sans-serif; font-size: 13px; line-height: 1.45; min-width: 210px;'>",
+            "<div style='font-weight: 700; color: #1E3A8A; font-size: 14px;'>", st_name, "</div>",
+            "<div style='color: #475569;'>", cty, ", ", stt, "</div>",
+            "<div style='font-size: 11px; color: #64748B; margin-bottom: 4px;'>Coords: ", lat_v, "°N, ", lon_v, "°E</div>",
+            "<hr style='margin: 4px 0;'/>",
+            "<div><strong>", pol, " Reading: </strong>", val_str, "</div>",
+            "<div><strong>Indicative Sub-Index: </strong>", aqi_str, "</div>",
+            "<div style='font-size: 10.5px; color: #94A3B8; margin-top: 4px;'>Timestamp: 23-10-2026 18:00 IST</div>",
+            "</div>"
+          )
+        })
+        
+        m <- m %>% addCircleMarkers(
+          data = df,
+          layerId = ~station,
+          lng = ~longitude,
+          lat = ~latitude,
+          radius = 7,
+          fillColor = marker_colors,
+          fillOpacity = 0.85,
+          color = "#FFFFFF",
+          weight = 1.3,
+          popup = popups,
+          label = ~paste0(station, " (", city, ")")
+        )
+        
+        if (!is.null(sel_stn) && sel_stn %in% df$station) {
+          stn_row <- df %>% filter(station == sel_stn) %>% head(1)
+          if (nrow(stn_row) > 0) {
+            m <- m %>% addCircleMarkers(
+              lng = stn_row$longitude,
+              lat = stn_row$latitude,
+              radius = 13,
+              fillColor = "transparent",
+              color = "#1E3A8A",
+              weight = 3,
+              dashArray = "4, 4",
+              layerId = "highlight_ring"
+            )
+          }
+        }
+      }
+      
+      m
     })
+    outputOptions(output, "hotspot_map", suspendWhenHidden = FALSE)
     
-    # Reactive Leaflet Marker Updates
+    # Reactive Leaflet Marker Updates (depends on filters, NOT selected_station_name)
     observe({
       df <- filtered_map_data()
       pol <- curr_pollutant()
       mode <- curr_color_mode()
       unit <- ifelse(pol == "CO", "mg/m³", "µg/m³")
-      sel_stn <- selected_station_name()
+      sel_stn <- isolate(selected_station_name())
       
       proxy <- leafletProxy("hotspot_map") %>%
         clearMarkers() %>%
@@ -516,8 +642,31 @@ mod_map_server <- function(id) {
             lat2 = max(valid_coords$latitude) + 0.25
           )
         }
+      } else {
+        proxy %>% fitBounds(lng1 = 68.5, lat1 = 7.5, lng2 = 97.5, lat2 = 35.5)
       }
     })
+    
+    # Dedicated Highlight Ring Update (does NOT clear other markers or close popups)
+    observeEvent(selected_station_name(), {
+      sel_stn <- selected_station_name()
+      df <- isolate(filtered_map_data())
+      if (is.null(sel_stn) || !(sel_stn %in% df$station)) return()
+      stn_row <- df %>% filter(station == sel_stn) %>% head(1)
+      if (nrow(stn_row) > 0) {
+        leafletProxy("hotspot_map") %>%
+          addCircleMarkers(
+            lng = stn_row$longitude,
+            lat = stn_row$latitude,
+            radius = 13,
+            fillColor = "transparent",
+            color = "#1E3A8A",
+            weight = 3,
+            dashArray = "4, 4",
+            layerId = "highlight_ring"
+          )
+      }
+    }, ignoreNULL = TRUE, ignoreInit = TRUE)
     
     # 6. Marker Click Event: Update Selected Station
     observeEvent(input$hotspot_map_marker_click, {
@@ -688,7 +837,107 @@ mod_map_server <- function(id) {
           xaxis = list(fixedrange = TRUE),
           yaxis = list(fixedrange = TRUE)
         ) %>%
-        plotly::config(displayModeBar = FALSE)
+      fig
+    })
+    
+    # 8a. Understand This Chart: Hotspot Map
+    output$understand_hotspot_map <- renderUI({
+      df <- filtered_map_data()
+      pol <- curr_pollutant()
+      mode <- curr_color_mode()
+      unit <- ifelse(pol == "CO", "mg/m³", "µg/m³")
+      sel_stn <- selected_station_name()
+      
+      if (nrow(df) == 0) {
+        finding <- "No monitoring stations match the active filter criteria."
+      } else {
+        valid_df <- df %>% filter(!is.na(.data[[pol]]))
+        valid_n <- nrow(valid_df)
+        miss_n <- nrow(df) - valid_n
+        
+        if (valid_n > 0) {
+          top_stn <- valid_df %>% arrange(desc(.data[[pol]])) %>% head(1)
+          sel_val <- if (!is.null(sel_stn) && sel_stn %in% df$station) {
+            val <- df[[pol]][df$station == sel_stn]
+            if (is.na(val)) "Offline / NA" else paste0(val, " ", unit)
+          } else "None selected"
+          
+          finding <- paste0(
+            "Across ", nrow(df), " filtered stations (", valid_n, " reporting, ", miss_n, " offline), ",
+            "the peak reported ", pol, " average is at ", top_stn$station, " in ", top_stn$city,
+            " (", top_stn[[pol]], " ", unit, "). ",
+            if (!is.null(sel_stn) && sel_stn %in% df$station) {
+              paste0("Currently inspected station '", sel_stn, "' reports ", sel_val, ".")
+            } else ""
+          )
+        } else {
+          finding <- paste0("All ", nrow(df), " stations in this selection have offline or missing sensors for ", pol, ".")
+        }
+      }
+      
+      colors_text <- if (mode == "conc") {
+        paste0("Continuous plasma color gradient: yellow indicates lower reported ", pol, ", transitioning through orange and magenta to dark purple for peak concentrations. Grey circles denote offline sensors.")
+      } else {
+        "Discrete CPCB categorical palette: Green (Good: 0–50), Light Green (Satisfactory: 51–100), Yellow (Moderate: 101–200), Orange (Poor: 201–300), Red (Very Poor: 301–400), Purple (Severe: 401–500), and Grey (Ineligible/Offline)."
+      }
+      
+      build_understand_chart(
+        chart_type = "Geographic Hotspot Map (Leaflet)",
+        what_shows = paste0(
+          "Displays spatial distribution of ambient air quality monitoring stations across selected states and cities. ",
+          "Allows geographical exploration of acute pollution clusters and station-level sensor health."
+        ),
+        how_to_read = paste0(
+          "Each circular marker pinpoints a verified station coordinate. Click any marker or directory row to inspect its full 7-pollutant telemetry profile on the right. ",
+          "The blue dashed outer ring highlights the currently selected station."
+        ),
+        colors_meaning = colors_text,
+        dynamic_findings = finding,
+        important_note = paste0(
+          "Data reflects snapshot observations (23 Oct 2026, 18:00 IST). ",
+          "Certified CPCB regulatory non-compliance requires continuous 24-hr sampling with ≥16 valid hourly averages. Indicative sub-indices indicate snapshot severity."
+        )
+      )
+    })
+    
+    # 8b. Understand This Chart: Ranked Stations Chart
+    output$understand_ranked_stations <- renderUI({
+      df <- filtered_map_data()
+      pol <- curr_pollutant()
+      unit <- ifelse(pol == "CO", "mg/m³", "µg/m³")
+      rank_df <- df %>% filter(!is.na(.data[[pol]])) %>% arrange(desc(.data[[pol]])) %>% head(10)
+      
+      if (nrow(rank_df) == 0) {
+        finding <- paste0("No stations currently report valid measurements for ", pol, " in the selected area.")
+      } else {
+        top1 <- rank_df[1, ]
+        last_item <- rank_df[nrow(rank_df), ]
+        finding <- paste0(
+          "Top ranked station in the current selection is ", top1$station, " in ", top1$city,
+          " with ", top1[[pol]], " ", unit, ". ",
+          if (nrow(rank_df) > 1) {
+            paste0("Across the top ", nrow(rank_df), " stations, reported readings span from ", top1[[pol]], " down to ", last_item[[pol]], " ", unit, ".")
+          } else ""
+        )
+      }
+      
+      build_understand_chart(
+        chart_type = "Horizontal Bar Chart",
+        what_shows = paste0(
+          "Ranks the top 10 stations with the highest reported concentrations of ", pol, " in the filtered area. ",
+          "Provides a concise comparative view alongside the spatial map."
+        ),
+        how_to_read = paste0(
+          "The horizontal axis measures reported concentration in ", unit, ". ",
+          "Bars are ordered from highest (top) to lowest (bottom). Clicking any bar or table row focuses the spatial map directly onto that station."
+        ),
+        colors_meaning = "Bars use a plasma color gradient where deeper purple bars highlight higher concentrations.",
+        dynamic_findings = finding,
+        important_note = paste0(
+          "Snapshot readings indicate localized concentration spikes at the time of sampling. ",
+          "They cannot be used to infer long-term chronic exposure or regulatory non-attainment without 24-hour continuous records."
+        )
+      )
     })
     
     # 9. Searchable DT Stations Directory Table

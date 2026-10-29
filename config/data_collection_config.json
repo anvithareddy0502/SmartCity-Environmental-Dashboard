@@ -1,0 +1,9 @@
+{
+  "collection_interval_minutes": 0,
+  "cooldown_seconds": 180,
+  "max_records_per_fetch": 50,
+  "last_attempt_time": "2026-10-29 14:56:01",
+  "last_success_time": "2026-10-29 14:56:01",
+  "last_status": "Success",
+  "custom_api_key": {}
+}

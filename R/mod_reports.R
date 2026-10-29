@@ -24,17 +24,11 @@ mod_reports_ui <- function(id) {
     div(
       class = "container-fluid py-3",
       
-      # Top Provenance Banner
+      # Clean Page Header
       div(
-        class = "alert alert-secondary d-flex align-items-center mb-3 py-2 px-3",
-        role = "alert",
-        icon("file-lines", class = "me-2 fs-5 text-primary"),
-        div(
-          class = "small",
-          strong("Academic & Policy Evidence Studio: "), "CPCB Baseline Monitoring Snapshot (23-10-2026 18:00 IST) | ",
-          strong("Analytical Protocol: "), "Findings are computed dynamically from authentic station observations. ",
-          "No causal inferences, regulatory non-compliance claims, or synthetic extrapolations are reported."
-        )
+        class = "page-header-container mb-3",
+        h4(class = "page-header-title", "Insights & Reports"),
+        p(class = "page-header-sub", "Analytical findings, state comparisons, and data export options.")
       ),
       
       # Interactive Controls Card
@@ -46,7 +40,7 @@ mod_reports_ui <- function(id) {
             width = 4,
             selectInput(
               inputId = ns("report_filter_state"),
-              label = tags$span(icon("map-location", class = "me-1 text-primary"), "Geographic Scope (State / UT):"),
+              label = "State / UT:",
               choices = c("All States", sort(unique(BASE_DATA$state))),
               selected = "All States",
               width = "100%"
@@ -56,7 +50,7 @@ mod_reports_ui <- function(id) {
             width = 4,
             selectInput(
               inputId = ns("report_filter_city"),
-              label = tags$span(icon("city", class = "me-1 text-primary"), "City Scope:"),
+              label = "City:",
               choices = c("All Cities", sort(unique(BASE_DATA$city))),
               selected = "All Cities",
               width = "100%"
@@ -66,7 +60,7 @@ mod_reports_ui <- function(id) {
             width = 3,
             selectInput(
               inputId = ns("report_filter_pollutant"),
-              label = tags$span(icon("smog", class = "me-1 text-primary"), "Target Pollutant:"),
+              label = "Pollutant:",
               choices = c(
                 "PM2.5" = "PM2.5",
                 "PM10"  = "PM10",
@@ -100,9 +94,9 @@ mod_reports_ui <- function(id) {
       navset_card_tab(
         id = ns("report_tabs"),
         
-        # TAB 1: Executive Insights & Comparative Extremes
+        # TAB 1: Key Findings & Comparative Extremes
         nav_panel(
-          title = "Executive Insights & Extremes",
+          title = "Key Findings",
           icon = icon("gauge-high"),
           div(
             class = "py-2",
@@ -151,15 +145,12 @@ mod_reports_ui <- function(id) {
                   class = "card p-3 shadow-sm border-0 h-100",
                   div(
                     class = "d-flex justify-content-between align-items-center mb-1",
-                    h6(class = "card-title text-primary m-0", icon("chart-bar", class = "me-2"), textOutput(ns("state_chart_title"), inline = TRUE)),
+                    h6(class = "card-title m-0", textOutput(ns("state_chart_title"), inline = TRUE)),
                     span(class = "badge bg-light text-secondary border", "Ranked Means")
                   ),
                   p(class = "small text-muted mb-2", "Average reported concentration across monitoring stations in each state/UT."),
                   plotlyOutput(ns("state_comparison_chart"), height = "390px"),
-                  div(
-                    class = "small text-muted mt-2",
-                    "Averages are computed strictly from stations reporting valid readings. States with missing sensors are excluded rather than imputed with zero."
-                  )
+                  uiOutput(ns("understand_state_comparison"))
                 )
               ),
               column(
@@ -168,7 +159,7 @@ mod_reports_ui <- function(id) {
                   class = "card p-3 shadow-sm border-0 h-100",
                   div(
                     class = "d-flex justify-content-between align-items-center mb-1",
-                    h6(class = "card-title text-primary m-0", icon("microscope", class = "me-2"), "Dynamic Environmental Findings"),
+                    h6(class = "card-title m-0", "Environmental Findings"),
                     span(class = "badge bg-light text-primary border", "Evidence-Based")
                   ),
                   p(class = "small text-muted mb-2", "Computed directly from the active filter selection:"),
@@ -191,7 +182,7 @@ mod_reports_ui <- function(id) {
                 width = 12,
                 div(
                   class = "card p-3 shadow-sm border-0",
-                  h6(class = "card-title text-primary mb-2", icon("table-list", class = "me-2"), "Criteria Pollutant Benchmark Metrics (Reported Station Readings)"),
+                  h6(class = "card-title mb-2", "Criteria Pollutant Benchmark Metrics (Reported Station Readings)"),
                   p(class = "small text-muted mb-2", "Complete statistical summary across all 7 monitored criteria pollutants in the filtered selection:"),
                   DTOutput(ns("summary_metrics_table"))
                 )
@@ -202,7 +193,7 @@ mod_reports_ui <- function(id) {
         
         # TAB 2: Report Generation & Download Center
         nav_panel(
-          title = "Report Generation & Downloads",
+          title = "Downloads & Exports",
           icon = icon("download"),
           div(
             class = "py-2",
@@ -211,8 +202,8 @@ mod_reports_ui <- function(id) {
                 width = 6,
                 div(
                   class = "card p-4 shadow-sm border-0 h-100",
-                  h5(class = "card-title text-primary mb-2", icon("file-csv", class = "me-2"), "Data Export Center (CSV)"),
-                  p(class = "text-muted small", "Download authentic, transparent data tables matching your active geographic filters:"),
+                  h5(class = "card-title mb-2", "Data Export Center (CSV)"),
+                  p(class = "text-muted small", "Download authentic data tables matching your active geographic filters:"),
                   
                   div(
                     class = "p-3 mb-3 bg-light rounded border",
@@ -242,8 +233,8 @@ mod_reports_ui <- function(id) {
                 width = 6,
                 div(
                   class = "card p-4 shadow-sm border-0 h-100",
-                  h5(class = "card-title text-primary mb-2", icon("file-invoice", class = "me-2"), "Executive Briefing Report"),
-                  p(class = "text-muted small", "Generate a self-contained, print-ready analytical report for academic evaluation:"),
+                  h5(class = "card-title mb-2", "Executive Briefing Report"),
+                  p(class = "text-muted small", "Generate a self-contained, print-ready analytical report:"),
                   
                   div(
                     class = "p-3 bg-light rounded border mb-3",
@@ -277,7 +268,7 @@ mod_reports_ui <- function(id) {
             class = "py-2",
             div(
               class = "card p-4 shadow-sm border-0",
-              h5(class = "card-title text-primary mb-3", icon("book", class = "me-2"), "Official Data Provenance & Methodology Specification"),
+              h5(class = "card-title mb-3", "Data Provenance & Methodology Specification"),
               
               div(
                 class = "row g-3",
@@ -285,7 +276,7 @@ mod_reports_ui <- function(id) {
                   class = "col-md-6",
                   div(
                     class = "p-3 bg-light rounded border h-100",
-                    h6(class = "fw-bold text-primary", icon("database", class = "me-1"), "1. Dataset Provenance & Ingestion"),
+                    h6(class = "fw-bold text-dark", "1. Dataset Provenance & Ingestion"),
                     tags$ul(
                       class = "small text-muted ps-3 mb-0",
                       tags$li(strong("Dataset Name: "), "Real-time Air Quality Index from various locations"),
@@ -302,7 +293,7 @@ mod_reports_ui <- function(id) {
                   class = "col-md-6",
                   div(
                     class = "p-3 bg-light rounded border h-100",
-                    h6(class = "fw-bold text-primary", icon("vial-virus", class = "me-1"), "2. Criteria Pollutants & Standard Units"),
+                    h6(class = "fw-bold text-dark", "2. Criteria Pollutants & Standard Units"),
                     tags$ul(
                       class = "small text-muted ps-3 mb-0",
                       tags$li(strong("PM2.5 (Fine Particulate): "), "µg/m³ (24-hr standard reference: 60 µg/m³)"),
@@ -320,7 +311,7 @@ mod_reports_ui <- function(id) {
                   class = "col-md-6",
                   div(
                     class = "p-3 bg-light rounded border h-100",
-                    h6(class = "fw-bold text-primary", icon("calculator", class = "me-1"), "3. CPCB NAQI Calculation Methodology"),
+                    h6(class = "fw-bold text-dark", "3. CPCB NAQI Calculation Methodology"),
                     p(class = "small text-muted mb-1", "Sub-indices are computed using the official CPCB linear interpolation breakpoint formula:"),
                     tags$code(class = "d-block p-2 bg-white rounded border text-center small mb-2", "I = I_lo + ((I_hi - I_lo) / (B_hi - B_lo)) * (C - B_lo)"),
                     tags$ul(
@@ -336,7 +327,7 @@ mod_reports_ui <- function(id) {
                   class = "col-md-6",
                   div(
                     class = "p-3 bg-light rounded border h-100",
-                    h6(class = "fw-bold text-primary", icon("network-wired", class = "me-1"), "4. Architecture & Lifecycle Transparency"),
+                    h6(class = "fw-bold text-dark", "4. Architecture & Lifecycle Transparency"),
                     tags$ul(
                       class = "small text-muted ps-3 mb-0",
                       tags$li(strong("Baseline Snapshot Mode: "), "Static baseline observation (23-10-2026 18:00 IST) is never labeled as live data."),
@@ -351,19 +342,19 @@ mod_reports_ui <- function(id) {
           )
         ),
         
-        # TAB 4: Executive Conclusion & Policy Recommendations
+        # TAB 4: Project Summary & Assessment Conclusions
         nav_panel(
-          title = "Executive Conclusion & Policy Recommendations",
-          icon = icon("award"),
+          title = "Project Summary",
+          icon = icon("graduation-cap"),
           div(
             class = "py-2",
             div(
               class = "card p-4 shadow-sm border-0",
-              h5(class = "card-title text-primary mb-3", icon("landmark", class = "me-2"), "Executive Assessment Conclusions & Policy Evidence"),
+              h5(class = "card-title mb-3", "Assessment Conclusions & Findings"),
               
               div(
                 class = "interpretation-box p-3 mb-3",
-                h6(class = "fw-bold text-primary mb-2", icon("graduation-cap", class = "me-1"), "VIT CSI3005 Advanced Data Visualization Project Summary"),
+                h6(class = "fw-bold mb-2", "Project Overview"),
                 p(class = "mb-1",
                   "This project successfully architects an end-to-end Environmental Intelligence Dashboard grounded strictly in genuine CPCB continuous air quality monitoring data from data.gov.in. ",
                   "By establishing a non-destructive data cleaning pipeline, rigorous coordinate validation, CPCB eligibility enforcement, and unit-separated advanced visualizations, the system delivers verifiable, empirical insights into India's air quality landscape."
@@ -439,10 +430,11 @@ mod_reports_server <- function(id) {
     
     # 2. Cascading City Filter Update
     observeEvent(input$report_filter_state, {
+      req(input$report_filter_state)
       st <- curr_state()
       ct <- curr_city()
       
-      if (st == "All States") {
+      if (identical(st, "All States")) {
         cities <- c("All Cities", sort(unique(BASE_DATA$city)))
       } else {
         cities <- c("All Cities", sort(unique(BASE_DATA$city[BASE_DATA$state == st])))
@@ -464,8 +456,8 @@ mod_reports_server <- function(id) {
       df <- BASE_DATA
       st <- curr_state()
       ct <- curr_city()
-      if (st != "All States") df <- df %>% filter(state == st)
-      if (ct != "All Cities") df <- df %>% filter(city == ct)
+      if (!identical(st, "All States")) df <- df %>% filter(state == st)
+      if (!identical(ct, "All Cities")) df <- df %>% filter(city == ct)
       df
     })
     
@@ -473,8 +465,8 @@ mod_reports_server <- function(id) {
       df <- WIDE_WITH_SUBINDICES
       st <- curr_state()
       ct <- curr_city()
-      if (st != "All States") df <- df %>% filter(state == st)
-      if (ct != "All Cities") df <- df %>% filter(city == ct)
+      if (!identical(st, "All States")) df <- df %>% filter(state == st)
+      if (!identical(ct, "All Cities")) df <- df %>% filter(city == ct)
       df
     })
     
@@ -615,6 +607,53 @@ mod_reports_server <- function(id) {
         plotly::config(displayModeBar = FALSE)
     })
     
+    # Understand State-Level Comparison Chart
+    output$understand_state_comparison <- renderUI({
+      df <- filtered_report_long()
+      pol <- curr_pollutant()
+      unit <- ifelse(pol == "CO", "mg/m³", "µg/m³")
+      
+      sub <- df %>% filter(pollutant_id == pol, !is.na(pollutant_avg))
+      if (nrow(sub) == 0) return(NULL)
+      
+      group_col <- if (curr_state() == "All States") "state" else "city"
+      
+      agg_df <- sub %>%
+        group_by(.data[[group_col]]) %>%
+        summarise(
+          mean_conc = round(mean(pollutant_avg), 1),
+          med_conc = round(median(pollutant_avg), 1),
+          stn_count = n(),
+          .groups = "drop"
+        ) %>%
+        arrange(desc(mean_conc))
+      
+      if (nrow(agg_df) == 0) return(NULL)
+      
+      top_loc <- agg_df[[group_col]][1]
+      top_val <- agg_df$mean_conc[1]
+      bot_loc <- agg_df[[group_col]][nrow(agg_df)]
+      bot_val <- agg_df$mean_conc[nrow(agg_df)]
+      tot_stn <- sum(agg_df$stn_count)
+      loc_type <- ifelse(group_col == "state", "states/UTs", "cities")
+      
+      findings <- paste0(
+        "Across ", nrow(agg_df), " reporting ", loc_type, " representing ", tot_stn, " stations: ",
+        top_loc, " recorded the highest average ", pol, " concentration at ", top_val, " ", unit, ", while ",
+        bot_loc, " recorded the lowest average at ", bot_val, " ", unit, ". ",
+        "Disparities reflect differing local urbanization, terrain, and atmospheric dispersion regimes."
+      )
+      
+      build_understand_chart(
+        chart_type = "Horizontal Bar Chart",
+        what_shows = "This ranked horizontal bar chart compares arithmetic mean concentrations of the selected criteria pollutant across reporting states or cities, highlighting regional disparities across the monitoring network.",
+        how_to_read = "The vertical y-axis ranks geographic jurisdictions (states or cities) in descending order of average concentration. The horizontal x-axis displays the mean pollutant concentration in its native measurement unit. Hover over any bar to view the exact location name, mean, median, and active station count.",
+        colors_meaning = "Bars are coloured using a perceptually uniform cividis sequential gradient. Darker tones indicate lower concentration levels, while vibrant yellow-gold bars highlight jurisdictions with elevated concentrations.",
+        dynamic_findings = findings,
+        important_note = "Jurisdictional averages are derived strictly from active stations reporting valid observations. Stations with missing readings are excluded rather than imputed with zero, preventing artificial dilution of regional metrics."
+      )
+    })
+    
     # Dynamic Analytical Findings Box
     output$dynamic_insights_box <- renderUI({
       df <- filtered_report_long()
@@ -672,6 +711,23 @@ mod_reports_server <- function(id) {
     # 6. Summary Metrics DT Table
     output$summary_metrics_table <- renderDT({
       df <- filtered_report_long()
+      
+      if (nrow(df) == 0) {
+        empty_table <- data.frame(
+          Pollutant = character(0),
+          Unit = character(0),
+          Stations = integer(0),
+          Valid = integer(0),
+          Missing = integer(0),
+          `Complete %` = character(0),
+          Min = numeric(0),
+          Median = numeric(0),
+          Mean = numeric(0),
+          Max = numeric(0),
+          check.names = FALSE
+        )
+        return(datatable(empty_table, options = list(dom = "t"), rownames = FALSE))
+      }
       
       sum_df <- df %>%
         group_by(pollutant_id) %>%
@@ -748,7 +804,24 @@ mod_reports_server <- function(id) {
         paste0("cpcb_criteria_pollutants_summary_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".csv")
       },
       content = function(file) {
-        sum_df <- filtered_report_long() %>%
+        df_raw <- filtered_report_long()
+        if (nrow(df_raw) == 0) {
+          sum_df <- data.frame(
+            pollutant_id = character(0),
+            monitored_stations = integer(0),
+            valid_readings = integer(0),
+            missing_readings = integer(0),
+            completeness_pct = numeric(0),
+            min_reported = numeric(0),
+            median_reported = numeric(0),
+            mean_reported = numeric(0),
+            max_reported = numeric(0),
+            unit = character(0)
+          )
+          write.csv(sum_df, file, row.names = FALSE)
+          return()
+        }
+        sum_df <- df_raw %>%
           group_by(pollutant_id) %>%
           summarise(
             monitored_stations = n(),
@@ -789,7 +862,7 @@ mod_reports_server <- function(id) {
         tot_obs <- nrow(df)
         valid_obs <- sum(!is.na(df$pollutant_avg))
         miss_obs <- tot_obs - valid_obs
-        comp_pct <- round(100 * valid_obs / tot_obs, 1)
+        comp_pct <- if (tot_obs > 0) round(100 * valid_obs / tot_obs, 1) else 0
         
         el_count <- sum(w$cpcb_eligible, na.rm = TRUE)
         tot_stn <- nrow(w)

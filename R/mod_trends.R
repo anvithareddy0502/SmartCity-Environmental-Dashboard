@@ -26,17 +26,11 @@ mod_trends_ui <- function(id) {
     div(
       class = "container-fluid py-3",
       
-      # 1. Top Provenance & Freshness Status Banner
+      # Clean Page Header
       div(
-        class = "alert alert-secondary d-flex align-items-center mb-3 py-2 px-3",
-        role = "alert",
-        icon("clock-rotate-left", class = "me-2 fs-5 text-primary"),
-        div(
-          class = "small",
-          strong("Historical Data Architecture: "), "Continuous Ambient Air Quality Monitoring (CAAQM) Longitudinal Repository | ",
-          strong("Scientific Integrity Framework: "), "Multi-timestamp trajectory lines and delta analyses are enabled strictly when genuine observations across multiple timestamps exist in storage. ",
-          "No synthetic timestamps or artificial trend lines are generated."
-        )
+        class = "page-header-container mb-3",
+        h4(class = "page-header-title", "Historical Trends"),
+        p(class = "page-header-sub", "Longitudinal observations, multi-timestamp trajectories, and rate-of-change analysis.")
       ),
       
       # 2. Historical Telemetry KPI Bar
@@ -85,12 +79,12 @@ mod_trends_ui <- function(id) {
         class = "card p-3 mb-3 shadow-sm border-0 bg-white",
         div(
           class = "d-flex justify-content-between align-items-center mb-2",
-          h6(class = "card-title text-primary m-0 fw-bold", icon("cloud-arrow-down", class = "me-2"), "Historical Data Ingestion & Harvesting Command Center"),
+          h6(class = "card-title m-0 fw-bold", "Historical Data Collection"),
           span(class = "badge bg-light text-secondary border", "Deduplication Enforced")
         ),
         p(class = "small text-muted mb-3",
           "Expand the longitudinal dataset by importing genuine CPCB CSV snapshots or querying the official data.gov.in endpoint. ",
-          "Every observation is deduplicated using the composite primary key ", tags$code("(station, pollutant_id, observation_time)"), " to guarantee scientific data integrity."
+          "Every observation is deduplicated using the composite primary key ", tags$code("(station, pollutant_id, observation_time)"), " to guarantee data integrity."
         ),
         fluidRow(
           # Pathway A: Manual CSV Upload
@@ -98,7 +92,7 @@ mod_trends_ui <- function(id) {
             width = 6,
             div(
               class = "p-3 bg-light rounded border h-100",
-              h6(class = "fw-bold small text-dark mb-1", icon("file-import", class = "me-1 text-primary"), "Pathway 1: Import Genuine CPCB Snapshot (CSV)"),
+              h6(class = "fw-bold small text-dark mb-1", "Import CSV snapshot"),
               p(class = "small text-muted mb-2", "Upload genuine CPCB CSV files downloaded from data.gov.in. Records are automatically validated, timestamped, and merged."),
               fileInput(
                 inputId = ns("import_cpcb_csv"),
@@ -112,29 +106,98 @@ mod_trends_ui <- function(id) {
             )
           ),
           
-          # Pathway B: Automated API Query
+          # Pathway B: Automated API Query & Scheduled Updates
           column(
             width = 6,
             div(
               class = "p-3 bg-light rounded border h-100",
-              h6(class = "fw-bold small text-dark mb-1", icon("satellite-dish", class = "me-1 text-primary"), "Pathway 2: Query data.gov.in API Endpoint"),
-              p(class = "small text-muted mb-2", "Attempt live retrieval from the official CPCB CAAQM endpoint (Resource ID: 3b01bcb8). Handles rate-limits and server errors gracefully."),
+              h6(class = "fw-bold small text-dark mb-1", "Automated & Live API Data Harvester"),
+              p(class = "small text-muted mb-2", "Query the official CPCB CAAQM endpoint (Resource ID: 3b01bcb8) with automatic deduplication, rate-limit defense, and in-session scheduling."),
               div(
-                class = "d-flex gap-2 align-items-center mb-2",
-                actionButton(
-                  inputId = ns("btn_harvest_api"),
-                  label = "Query Endpoint Now",
-                  icon = icon("cloud-arrow-down"),
-                  class = "btn-primary btn-sm"
+                class = "row g-2 mb-2",
+                div(
+                  class = "col-sm-6",
+                  selectInput(
+                    inputId = ns("collection_interval"),
+                    label = "Auto-Poll Interval:",
+                    choices = c(
+                      "Disabled (Manual Only)" = 0,
+                      "Every 15 Minutes" = 15,
+                      "Every 30 Minutes" = 30,
+                      "Every 1 Hour" = 60,
+                      "Every 2 Hours" = 120,
+                      "Every 6 Hours" = 360
+                    ),
+                    selected = 0,
+                    width = "100%"
+                  )
                 ),
-                actionButton(
-                  inputId = ns("btn_scan_archive"),
-                  label = "Re-scan Archive Store",
-                  icon = icon("rotate"),
-                  class = "btn-outline-secondary btn-sm"
+                div(
+                  class = "col-sm-6 d-flex align-items-end",
+                  div(
+                    class = "d-flex gap-1 w-100 mb-1",
+                    actionButton(
+                      inputId = ns("btn_harvest_api"),
+                      label = "Refresh Now",
+                      icon = icon("cloud-arrow-down"),
+                      class = "btn-primary btn-sm flex-fill"
+                    ),
+                    actionButton(
+                      inputId = ns("btn_scan_archive"),
+                      label = "Re-scan",
+                      icon = icon("rotate"),
+                      class = "btn-outline-secondary btn-sm"
+                    )
+                  )
                 )
               ),
-              uiOutput(ns("api_status_ui"))
+              # Collapsible API Key settings
+              tags$details(
+                class = "mb-2 small text-muted",
+                tags$summary(
+                  class = "fw-semibold text-secondary",
+                  style = "cursor: pointer;",
+                  icon("key", class = "me-1 text-primary"),
+                  "Configure Custom API Key (Optional)"
+                ),
+                div(
+                  class = "mt-2 p-2 bg-white rounded border",
+                  passwordInput(
+                    inputId = ns("custom_api_key"),
+                    label = "data.gov.in API Key:",
+                    placeholder = "Paste custom API key or leave blank for default public key...",
+                    width = "100%"
+                  ),
+                  div(
+                    class = "d-flex justify-content-between align-items-center",
+                    span(class = "text-muted", style = "font-size: 0.75rem;", "Saved safely without hardcoding in codebase."),
+                    actionButton(ns("btn_save_key"), "Save Key", class = "btn-outline-primary btn-sm py-0 px-2")
+                  )
+                )
+              ),
+              # Collapsible Windows Task Scheduler 24/7 Setup Guide
+              tags$details(
+                class = "mb-2 small text-muted",
+                tags$summary(
+                  class = "fw-semibold text-secondary",
+                  style = "cursor: pointer;",
+                  icon("terminal", class = "me-1 text-primary"),
+                  "24/7 Windows Background Scheduler Guide (Click to expand)"
+                ),
+                div(
+                  class = "mt-2 p-2 bg-white rounded border",
+                  uiOutput(ns("scheduler_guide_ui"))
+                )
+              ),
+              uiOutput(ns("api_status_ui")),
+              div(
+                class = "small text-muted mt-2 border-top pt-2",
+                style = "font-size: 0.75rem;",
+                icon("clock", class = "me-1 text-info"),
+                tags$b("In-Session Scheduler: "),
+                "Runs while dashboard is active in your browser. For 24/7 background collection without browser dependency, schedule ",
+                tags$code("scripts/background_data_sync.R"), " via Windows Task Scheduler or cron."
+              )
             )
           )
         )
@@ -147,17 +210,21 @@ mod_trends_ui <- function(id) {
 }
 
 # Server Module for Historical Trends
-mod_trends_server <- function(id) {
+mod_trends_server <- function(id, shared_trigger = NULL) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
-    # Reactive value to trigger re-reads of the archive store
+    cfg_init <- get_data_collection_config()
+    
+    # Reactive value to trigger re-reads of the archive store & track collection telemetry
     rv <- reactiveValues(
       refresh_counter = 0,
       last_import_msg = NULL,
       last_import_success = NULL,
-      last_api_msg = NULL,
-      last_api_code = NULL
+      last_api_msg = cfg_init$last_error_message,
+      last_api_code = if (identical(cfg_init$last_status, "Success")) 200L else if (identical(cfg_init$last_status, "Rate Limited")) 429L else NULL,
+      last_success_time = cfg_init$last_success_time,
+      is_busy = FALSE
     )
     
     # --------------------------------------------------------------------------
@@ -166,14 +233,65 @@ mod_trends_server <- function(id) {
     historical_repo <- reactive({
       input$btn_scan_archive
       rv$refresh_counter
+      if (!is.null(shared_trigger)) shared_trigger()
       
       load_historical_repository(base_df = BASE_DATA, archive_dir = "data/archive")
     })
     
     # --------------------------------------------------------------------------
-    # 2. Ingestion Event Handlers
+    # 2. Automated In-Session Polling Timer
     # --------------------------------------------------------------------------
-    # 2.1 Manual CSV Upload Handler
+    auto_timer <- reactiveTimer(30000) # Checks every 30 seconds
+    last_auto_poll_time <- reactiveVal(Sys.time())
+    
+    observeEvent(auto_timer(), {
+      if (is.null(input$collection_interval)) return()
+      interval_mins <- suppressWarnings(as.numeric(input$collection_interval))
+      if (length(interval_mins) == 0 || is.na(interval_mins) || interval_mins <= 0) return()
+      
+      now <- Sys.time()
+      elapsed_sec <- as.numeric(difftime(now, last_auto_poll_time(), units = "secs"))
+      
+      if (elapsed_sec >= (interval_mins * 60)) {
+        last_auto_poll_time(now)
+        
+        # Concurrency guard
+        if (isTRUE(rv$is_busy)) return()
+        rv$is_busy <- TRUE
+        on.exit({ rv$is_busy <- FALSE }, add = TRUE)
+        
+        custom_k <- if (!is.null(input$custom_api_key) && nzchar(str_trim(input$custom_api_key))) str_trim(input$custom_api_key) else NULL
+        res <- execute_data_collection_update(api_key = custom_k, archive_dir = "data/archive", max_records = 50, force = FALSE)
+        
+        if (isTRUE(res$success)) {
+          rv$last_api_msg <- res$message
+          rv$last_api_code <- 200L
+          rv$last_success_time <- format(now, "%Y-%m-%d %H:%M:%S")
+          rv$refresh_counter <- rv$refresh_counter + 1
+          if (!is.null(shared_trigger)) shared_trigger(shared_trigger() + 1)
+          showNotification(paste0("Auto-Update: ", res$message), type = "message", duration = 6)
+        } else {
+          rv$last_api_msg <- paste0(res$error_type, ": ", res$message)
+          rv$last_api_code <- res$status_code
+        }
+      }
+    })
+    
+    # --------------------------------------------------------------------------
+    # 3. Custom API Key Save Handler
+    # --------------------------------------------------------------------------
+    observeEvent(input$btn_save_key, {
+      key <- input$custom_api_key
+      curr_cfg <- get_data_collection_config()
+      curr_cfg$custom_api_key <- if (nzchar(str_trim(key))) str_trim(key) else NULL
+      save_data_collection_config(curr_cfg)
+      showNotification("API key configuration saved for this session.", type = "message", duration = 4)
+    })
+    
+    # --------------------------------------------------------------------------
+    # 4. Ingestion Event Handlers
+    # --------------------------------------------------------------------------
+    # 4.1 Manual CSV Upload Handler
     observeEvent(input$import_cpcb_csv, {
       req(input$import_cpcb_csv)
       
@@ -188,6 +306,7 @@ mod_trends_server <- function(id) {
         rv$last_import_msg <- res$message
         rv$last_import_success <- TRUE
         rv$refresh_counter <- rv$refresh_counter + 1
+        if (!is.null(shared_trigger)) shared_trigger(shared_trigger() + 1)
         showNotification(res$message, type = "message", duration = 6)
       } else {
         rv$last_import_msg <- res$message
@@ -196,24 +315,39 @@ mod_trends_server <- function(id) {
       }
     })
     
-    # 2.2 API Harvest Button Handler
+    # 4.2 API Harvest / Refresh Now Button Handler
     observeEvent(input$btn_harvest_api, {
-      api_res <- fetch_cpcb_live_snapshot(timeout_sec = 8)
-      
-      if (api_res$success && !is.null(api_res$records) && nrow(api_res$records) > 0) {
-        # Successfully retrieved live records
-        archived_path <- archive_new_snapshot(api_res$records, archive_dir = "data/archive")
-        rv$last_api_msg <- paste0("HTTP 200: Successfully harvested live snapshot with ", nrow(api_res$records), " records into ", basename(archived_path), "!")
-        rv$last_api_code <- 200
-        rv$refresh_counter <- rv$refresh_counter + 1
-        showNotification(rv$last_api_msg, type = "message", duration = 6)
-      } else {
-        # Rate limited (429), Server Error (500), or Network Failure
-        status_txt <- if (!is.na(api_res$status_code)) paste("HTTP", api_res$status_code) else "Network Error"
-        rv$last_api_msg <- paste0(status_txt, ": ", api_res$message)
-        rv$last_api_code <- api_res$status_code
-        showNotification(rv$last_api_msg, type = "warning", duration = 7)
+      if (isTRUE(rv$is_busy)) {
+        showNotification("A data collection query is already in progress. Please wait...", type = "warning", duration = 3)
+        return()
       }
+      
+      rv$is_busy <- TRUE
+      on.exit({ rv$is_busy <- FALSE }, add = TRUE)
+      
+      custom_k <- if (!is.null(input$custom_api_key) && nzchar(str_trim(input$custom_api_key))) str_trim(input$custom_api_key) else NULL
+      res <- execute_data_collection_update(api_key = custom_k, archive_dir = "data/archive", max_records = 50, force = TRUE)
+      
+      if (isTRUE(res$success)) {
+        rv$last_api_msg <- res$message
+        rv$last_api_code <- 200L
+        rv$last_success_time <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+        rv$refresh_counter <- rv$refresh_counter + 1
+        if (!is.null(shared_trigger)) shared_trigger(shared_trigger() + 1)
+        showNotification(res$message, type = "message", duration = 6)
+      } else {
+        rv$last_api_msg <- paste0(res$error_type, ": ", res$message)
+        rv$last_api_code <- res$status_code
+        showNotification(rv$last_api_msg, type = "warning", duration = 8)
+      }
+    })
+    
+    # 2.3 Manual Archive Directory Rescan Handler
+    observeEvent(input$btn_scan_archive, {
+      invalidate_historical_cache()
+      rv$refresh_counter <- rv$refresh_counter + 1
+      if (!is.null(shared_trigger)) shared_trigger(shared_trigger() + 1)
+      showNotification("Archive directory rescanned and cache updated.", type = "message", duration = 3)
     })
     
     # --------------------------------------------------------------------------
@@ -275,13 +409,143 @@ mod_trends_server <- function(id) {
       div(class = paste("small mt-2", cls), icon(ico, class = "me-1"), rv$last_import_msg)
     })
     
+    output$scheduler_guide_ui <- renderUI({
+      r_path <- if (exists("get_system_rscript_path")) get_system_rscript_path() else "Rscript.exe"
+      proj_dir <- tryCatch(normalizePath(getwd(), winslash = "\\"), error = function(e) getwd())
+      script_path <- file.path(proj_dir, "scripts", "background_data_sync.R")
+      log_path <- file.path(proj_dir, "logs", "background_sync.log")
+      
+      tagList(
+        p(class = "mb-1 fw-bold text-dark", "Continuous 24/7 Background Ingestion:"),
+        p(class = "mb-2 text-muted", "Collects genuine CPCB observations automatically even when RStudio and your browser are closed."),
+        div(class = "fw-semibold text-dark mb-1", "1. Test One Manual Collection:"),
+        tags$pre(
+          class = "bg-light p-2 rounded border font-monospace text-dark mb-2",
+          style = "font-size: 0.72rem; white-space: pre-wrap; word-break: break-all;",
+          sprintf('& "%s" "%s"', r_path, script_path)
+        ),
+        div(class = "fw-semibold text-dark mb-1", "2. Schedule Hourly in Windows Task Scheduler:"),
+        tags$pre(
+          class = "bg-light p-2 rounded border font-monospace text-dark mb-2",
+          style = "font-size: 0.72rem; white-space: pre-wrap; word-break: break-all;",
+          sprintf('schtasks /create /tn "CPCB_AirQuality_Sync" /tr "\\"\\"%s\\"\\" \\"\\"%s\\"\\"" /sc hourly /mo 1', r_path, script_path)
+        ),
+        div(class = "fw-semibold text-dark mb-1", "3. Inspect Background Execution Log:"),
+        tags$pre(
+          class = "bg-light p-2 rounded border font-monospace text-dark mb-2",
+          style = "font-size: 0.72rem; white-space: pre-wrap; word-break: break-all;",
+          sprintf('Get-Content -Path "%s" -Tail 20', log_path)
+        ),
+        div(class = "fw-semibold text-dark mb-1", "4. Stop or Remove Task:"),
+        tags$pre(
+          class = "bg-light p-2 rounded border font-monospace text-dark mb-0",
+          style = "font-size: 0.72rem; white-space: pre-wrap; word-break: break-all;",
+          'schtasks /delete /tn "CPCB_AirQuality_Sync" /f'
+        )
+      )
+    })
+
     output$api_status_ui <- renderUI({
-      if (is.null(rv$last_api_msg)) {
-        return(div(class = "small text-muted mt-1", icon("info-circle", class = "me-1"), "Current status: Offline Baseline mode. Click to test live availability."))
+      repo <- historical_repo()
+      bg_info <- if (exists("get_background_sync_log_summary")) get_background_sync_log_summary() else list(is_configured = FALSE)
+      
+      last_coll_str <- if (!is.null(rv$last_success_time)) {
+        format(as.POSIXct(rv$last_success_time), "%d-%b-%Y %H:%M:%S IST")
+      } else if (!is.na(repo$last_collection_time)) {
+        format(repo$last_collection_time, "%d-%b-%Y %H:%M:%S IST")
+      } else {
+        "Offline Baseline Snapshot"
       }
-      cls <- if (identical(rv$last_api_code, 200L)) "text-success" else "text-warning"
-      ico <- if (identical(rv$last_api_code, 200L)) "circle-check" else "triangle-exclamation"
-      div(class = paste("small mt-1", cls), icon(ico, class = "me-1"), rv$last_api_msg)
+      
+      latest_obs_str <- if (!is.na(repo$latest_time)) {
+        format(repo$latest_time, "%d-%b-%Y %H:%M IST")
+      } else {
+        "23-Oct-2026 18:00 IST"
+      }
+      
+      interval_val <- if (!is.null(input$collection_interval)) suppressWarnings(as.numeric(input$collection_interval)) else 0
+      is_session_polling <- (!is.na(interval_val) && interval_val > 0)
+      is_rate_limited <- identical(rv$last_api_code, 429L) || (!is.null(rv$last_api_msg) && grepl("rate limit|cooldown", tolower(rv$last_api_msg)))
+      is_error <- (!is.null(rv$last_api_code) && rv$last_api_code != 200L && !is_rate_limited)
+      is_synced <- identical(rv$last_api_code, 200L)
+      
+      if (is_rate_limited) {
+        state_badge <- span(class = "badge bg-warning text-dark py-1 px-2", icon("triangle-exclamation", class = "me-1"), "Rate Limited")
+        next_action_box <- div(
+          class = "small mt-2 p-2 rounded border bg-light text-secondary border-warning",
+          icon("lightbulb", class = "me-1 text-warning"),
+          strong("Next Action: "),
+          "Public OGD quota reached. Configure a private API key in the drawer above or wait 3 minutes for cooldown before refreshing."
+        )
+      } else if (is_error) {
+        state_badge <- span(class = "badge bg-danger text-white py-1 px-2", icon("circle-xmark", class = "me-1"), paste("Error", rv$last_api_code))
+        next_action_box <- div(
+          class = "small mt-2 p-2 rounded border bg-light text-danger border-danger",
+          icon("circle-exclamation", class = "me-1 text-danger"),
+          strong("Next Action: "),
+          "Upstream server or network issue. Baseline snapshot remains protected. Verify internet connectivity and retry."
+        )
+      } else if (is_synced) {
+        state_badge <- span(class = "badge bg-success text-white py-1 px-2", icon("circle-check", class = "me-1"), "Synchronized")
+        next_action_box <- div(
+          class = "small mt-2 p-2 rounded border bg-light text-success border-success",
+          icon("check", class = "me-1 text-success"),
+          strong("Next Action: "),
+          sprintf("Genuine observations successfully ingested (%d archived files). Trajectories and station deltas are active below.", repo$archive_files_count)
+        )
+      } else if (is_session_polling) {
+        state_badge <- span(class = "badge bg-primary text-white py-1 px-2", icon("arrows-rotate", class = "me-1"), paste0("In-Session Polling (", interval_val, "m)"))
+        next_action_box <- div(
+          class = "small mt-2 p-2 rounded border bg-light text-primary border-primary",
+          icon("clock", class = "me-1 text-primary"),
+          strong("Next Action: "),
+          "Auto-polling active. Keep this browser tab open to continue collecting snapshots, or register the Windows Task Scheduler worker."
+        )
+      } else if (isTRUE(bg_info$is_configured)) {
+        state_badge <- span(class = "badge bg-info text-dark py-1 px-2", icon("server", class = "me-1"), "Background Sync Enabled")
+        next_action_box <- div(
+          class = "small mt-2 p-2 rounded border bg-light text-dark border-info",
+          icon("circle-info", class = "me-1 text-info"),
+          strong("Next Action: "),
+          sprintf("Background worker active (%s). Click 'Re-scan' anytime to load new snapshot files into the dashboard.", bg_info$last_status)
+        )
+      } else if (repo$has_multi_timestamps) {
+        state_badge <- span(class = "badge bg-success text-white py-1 px-2", icon("layer-group", class = "me-1"), "Longitudinal Active")
+        next_action_box <- div(
+          class = "small mt-2 p-2 rounded border bg-light text-dark border-success",
+          icon("chart-line", class = "me-1 text-success"),
+          strong("Next Action: "),
+          "Multi-timestamp history available. Review temporal trajectories below or switch to AI Forecast & Alerts for predictions."
+        )
+      } else {
+        state_badge <- span(class = "badge bg-secondary text-white py-1 px-2", icon("database", class = "me-1"), "Baseline Snapshot (T=1)")
+        next_action_box <- div(
+          class = "small mt-2 p-2 rounded border bg-light text-dark border-secondary",
+          icon("circle-info", class = "me-1 text-secondary"),
+          strong("Next Action: "),
+          "Single snapshot loaded (23-Oct-2026 18:00 IST). Click 'Refresh Now' or drop an exported CSV to begin historical accumulation."
+        )
+      }
+      
+      div(
+        class = "mt-2 pt-2 border-top",
+        div(
+          class = "d-flex justify-content-between align-items-center mb-1",
+          span(class = "small text-muted fw-semibold", "Live Sync Telemetry:"),
+          state_badge
+        ),
+        div(
+          class = "small text-muted d-flex justify-content-between py-1",
+          span("Last Collection Attempt:"),
+          span(class = "fw-semibold text-dark font-monospace", last_coll_str)
+        ),
+        div(
+          class = "small text-muted d-flex justify-content-between py-1",
+          span("Latest Source Observation:"),
+          span(class = "fw-semibold text-dark font-monospace", latest_obs_str)
+        ),
+        next_action_box
+      )
     })
     
     # --------------------------------------------------------------------------
@@ -303,12 +567,12 @@ mod_trends_server <- function(id) {
               div(
                 class = "d-flex align-items-center mb-3",
                 div(
-                  class = "p-3 rounded-circle bg-warning bg-opacity-10 text-warning me-3",
-                  icon("clock-rotate-left", class = "fs-2")
+                  class = "p-3 rounded-circle bg-light text-secondary me-3 border",
+                  icon("clock-rotate-left", class = "fs-4 text-primary")
                 ),
                 div(
-                  h5(class = "card-title text-primary m-0 fw-bold", "Historical Analysis Framework: Single Timestamp Baseline"),
-                  p(class = "small text-muted m-0", "Status: Methodologically Gated to Prevent Synthetic Data Fabrication")
+                  h5(class = "card-title m-0 fw-bold", "Single Timestamp Baseline"),
+                  p(class = "small text-muted m-0", "Additional timestamped snapshots required for longitudinal curves")
                 )
               ),
               p(class = "text-secondary",
@@ -317,23 +581,22 @@ mod_trends_server <- function(id) {
               ),
               div(
                 class = "interpretation-box p-3 mb-3",
-                h6(class = "fw-bold text-primary mb-1", icon("shield-halved", class = "me-1"), "Strict Scientific Integrity Standard"),
+                h6(class = "fw-bold mb-1", "Historical Trend Analysis"),
                 p(class = "small m-0",
-                  "In accordance with rigorous academic assessment criteria, ",
-                  strong("historical line charts, diurnal progression curves, and rate-of-change metrics require at least 2 distinct observation timestamps. "),
-                  "Fabricating synthetic timestamps or hallucinating artificial historical trends is strictly prohibited. ",
-                  "All historical visualizations automatically unlock as soon as additional genuine snapshots are ingested."
+                  "Currently, the dataset contains observations for a single timestamp (", strong("23 Oct 2026, 18:00 IST"), "). ",
+                  "Trajectory curves and rate-of-change metrics will automatically appear once additional timestamped snapshots are imported. ",
+                  "Synthetic or simulated time points are never fabricated."
                 )
               ),
-              h6(class = "fw-bold text-secondary mb-2", "Supported vs. Gated Analytical Capabilities:"),
+              h6(class = "fw-bold text-secondary mb-2", "Supported vs. Gated Analyses:"),
               tags$ul(
                 class = "small text-muted ps-3 mb-3",
-                tags$li(strong("Currently Supported (1 Timestamp): "), "Cross-sectional spatial analysis, criteria pollutant distribution tracking, CPCB sub-index categorization, and sensor anomaly detection."),
-                tags$li(strong("Gated (Requires ≥2 Timestamps): "), "Station trajectory curves, temporal shift rankings (Δ accumulation/dispersion), state progression tracking, and diurnal comparisons.")
+                tags$li(strong("Currently supported (1 timestamp): "), "Cross-sectional spatial analysis, criteria pollutant distribution tracking, CPCB sub-index categorization, and sensor anomaly detection."),
+                tags$li(strong("Gated (requires ≥2 timestamps): "), "Station trajectory curves, temporal shift rankings (Δ accumulation/dispersion), state progression tracking, and diurnal comparisons.")
               ),
               p(class = "small text-muted mb-0",
                 icon("lightbulb", class = "me-1 text-primary"),
-                "To unlock historical trajectories immediately: Use ", strong("Pathway 1 (Manual Import)"), " above to import any genuine timestamped CPCB CSV snapshot."
+                "To unlock historical trajectories: Use ", strong("Import CSV snapshot"), " above to add any genuine timestamped CPCB CSV snapshot."
               )
             )
           ),
@@ -342,7 +605,7 @@ mod_trends_server <- function(id) {
             class = "col-md-4",
             div(
               class = "card p-4 shadow-sm border-0 h-100 bg-white",
-              h6(class = "card-title text-secondary mb-3 fw-bold", icon("server", class = "me-2"), "Longitudinal Ingestion Telemetry"),
+              h6(class = "card-title text-secondary mb-3 fw-bold", "Longitudinal Telemetry"),
               tags$table(
                 class = "table table-sm table-borderless small mb-3",
                 tags$tr(
@@ -367,7 +630,7 @@ mod_trends_server <- function(id) {
                 ),
                 tags$tr(
                   tags$td("API Status:"),
-                  tags$td(class = "text-end", span(class = "badge bg-warning text-dark", "Offline Baseline"))
+                  tags$td(class = "text-end", span(class = "badge bg-light text-secondary border", "Offline Baseline"))
                 )
               ),
               div(
@@ -391,7 +654,7 @@ mod_trends_server <- function(id) {
                 width = 3,
                 selectInput(
                   inputId = ns("trend_filter_state"),
-                  label = tags$span(icon("map-location", class = "me-1 text-primary"), "State / UT:"),
+                  label = "State / UT:",
                   choices = c("All States", sort(unique(repo$data$state))),
                   selected = "All States",
                   width = "100%"
@@ -401,7 +664,7 @@ mod_trends_server <- function(id) {
                 width = 3,
                 selectInput(
                   inputId = ns("trend_filter_city"),
-                  label = tags$span(icon("city", class = "me-1 text-primary"), "City:"),
+                  label = "City:",
                   choices = c("All Cities"),
                   selected = "All Cities",
                   width = "100%"
@@ -411,7 +674,7 @@ mod_trends_server <- function(id) {
                 width = 3,
                 selectInput(
                   inputId = ns("trend_filter_pollutant"),
-                  label = tags$span(icon("smog", class = "me-1 text-primary"), "Target Pollutant:"),
+                  label = "Pollutant:",
                   choices = c("PM2.5", "PM10", "NO2", "SO2", "CO", "OZONE", "NH3"),
                   selected = "PM2.5",
                   width = "100%"
@@ -423,7 +686,7 @@ mod_trends_server <- function(id) {
                   class = "d-flex align-items-end h-100 pb-1 gap-2",
                   actionButton(
                     inputId = ns("trend_btn_reset"),
-                    label = "Reset Filters",
+                    label = "Reset filters",
                     icon = icon("rotate-left"),
                     class = "btn-outline-secondary btn-sm w-100"
                   )
@@ -442,7 +705,7 @@ mod_trends_server <- function(id) {
                 class = "py-2",
                 div(
                   class = "d-flex justify-content-between align-items-center mb-1",
-                  h6(class = "card-title text-primary m-0 fw-bold", icon("timeline", class = "me-2"), textOutput(ns("trajectory_chart_title"), inline = TRUE)),
+                  h6(class = "card-title m-0 fw-bold", textOutput(ns("trajectory_chart_title"), inline = TRUE)),
                   span(class = "badge bg-light text-secondary border", textOutput(ns("trajectory_badge"), inline = TRUE))
                 ),
                 p(class = "small text-muted mb-2", "Chronological concentration trajectories across genuine observation timestamps. Markers denote exact sensor measurements."),
@@ -459,7 +722,7 @@ mod_trends_server <- function(id) {
                 class = "py-2",
                 div(
                   class = "d-flex justify-content-between align-items-center mb-1",
-                  h6(class = "card-title text-primary m-0 fw-bold", icon("arrows-up-down", class = "me-2"), textOutput(ns("delta_chart_title"), inline = TRUE)),
+                  h6(class = "card-title m-0 fw-bold", textOutput(ns("delta_chart_title"), inline = TRUE)),
                   span(class = "badge bg-light text-secondary border", textOutput(ns("delta_badge"), inline = TRUE))
                 ),
                 p(class = "small text-muted mb-2", "Rate of change calculated as (Latest Reading - Baseline Reading). Red indicates pollution accumulation; Green indicates atmospheric dispersion."),
@@ -470,29 +733,30 @@ mod_trends_server <- function(id) {
             
             # TAB 3: State Progression Tracking
             nav_panel(
-              title = "State-Level Progression",
+              title = "State Progression",
               icon = icon("chart-column"),
               div(
                 class = "py-2",
                 div(
                   class = "d-flex justify-content-between align-items-center mb-1",
-                  h6(class = "card-title text-primary m-0 fw-bold", icon("building-columns", class = "me-2"), textOutput(ns("state_progression_title"), inline = TRUE)),
+                  h6(class = "card-title m-0 fw-bold", textOutput(ns("state_progression_title"), inline = TRUE)),
                   span(class = "badge bg-light text-secondary border", "State Means Across Timestamps")
                 ),
                 p(class = "small text-muted mb-2", "Mean pollutant concentration across all reporting stations within each state, compared across chronological timestamps."),
-                plotlyOutput(ns("state_progression_chart"), height = "400px")
+                plotlyOutput(ns("state_progression_chart"), height = "400px"),
+                uiOutput(ns("state_progression_interpretation"))
               )
             ),
             
             # TAB 4: Longitudinal Data Directory & Export
             nav_panel(
-              title = "Longitudinal Data Directory & Export",
+              title = "Longitudinal Data Directory",
               icon = icon("table"),
               div(
                 class = "py-2",
                 div(
                   class = "d-flex justify-content-between align-items-center mb-2",
-                  h6(class = "card-title text-primary m-0 fw-bold", icon("list-check", class = "me-2"), "Multi-Timestamp Observations Directory"),
+                  h6(class = "card-title m-0 fw-bold", "Multi-Timestamp Observations Directory"),
                   downloadButton(
                     outputId = ns("btn_dl_longitudinal_csv"),
                     label = "Download Longitudinal Data (CSV)",
@@ -525,10 +789,11 @@ mod_trends_server <- function(id) {
     
     # Cascading City Choices
     observeEvent(input$trend_filter_state, {
+      req(input$trend_filter_state)
       repo <- historical_repo()
       st <- curr_state()
       
-      cities <- if (st == "All States") {
+      cities <- if (identical(st, "All States")) {
         sort(unique(repo$data$city))
       } else {
         sort(unique(repo$data$city[repo$data$state == st]))
@@ -553,8 +818,8 @@ mod_trends_server <- function(id) {
       pol <- curr_pollutant()
       
       df <- df %>% filter(pollutant_id == pol)
-      if (st != "All States") df <- df %>% filter(state == st)
-      if (ct != "All Cities") df <- df %>% filter(city == ct)
+      if (!identical(st, "All States")) df <- df %>% filter(state == st)
+      if (!identical(ct, "All Cities")) df <- df %>% filter(city == ct)
       
       df
     })
@@ -635,35 +900,41 @@ mod_trends_server <- function(id) {
         plotly::config(displayModeBar = FALSE)
     })
     
+    # Understand Trajectory Line Chart
     output$trajectory_interpretation <- renderUI({
       df <- filtered_trend_data() %>% filter(!is.na(pollutant_avg))
-      if (nrow(df) == 0 || length(unique(df$observation_time)) < 2) return(NULL)
-      
       pol <- curr_pollutant()
       unit <- ifelse(pol == "CO", "mg/m³", "µg/m³")
       
-      # Compute overall average trajectory
-      time_summary <- df %>%
-        group_by(observation_time) %>%
-        summarise(mean_val = mean(pollutant_avg, na.rm = TRUE), .groups = "drop") %>%
-        arrange(observation_time)
+      num_times <- length(unique(df$observation_time))
       
-      first_val <- round(time_summary$mean_val[1], 1)
-      last_val <- round(time_summary$mean_val[nrow(time_summary)], 1)
-      diff_val <- round(last_val - first_val, 1)
-      direction <- if (diff_val > 0) "increased" else if (diff_val < 0) "decreased" else "remained constant"
-      
-      div(
-        class = "interpretation-box py-2 px-3 small mt-2",
-        icon("circle-nodes", class = "me-1 text-primary"),
-        strong("Trajectory Finding: "),
+      findings <- if (num_times < 2) {
+        "Currently operating on the official single-timestamp CPCB baseline (23-Oct-2026 18:00 IST). Multi-timestamp line trajectories remain gated until additional genuine snapshots are imported into the archive, preventing the fabrication of synthetic trends."
+      } else {
+        time_summary <- df %>%
+          group_by(observation_time) %>%
+          summarise(mean_val = mean(pollutant_avg, na.rm = TRUE), .groups = "drop") %>%
+          arrange(observation_time)
+        first_val <- round(time_summary$mean_val[1], 1)
+        last_val <- round(time_summary$mean_val[nrow(time_summary)], 1)
+        diff_val <- round(last_val - first_val, 1)
+        direction <- if (diff_val > 0) "increased" else if (diff_val < 0) "decreased" else "remained constant"
+        
         paste0(
-          "Across the monitored observation window, the mean reported concentration of ", pol,
+          "Across the monitored observation window (", num_times, " timestamps), the mean concentration of ", pol,
           " ", direction, " by ", abs(diff_val), " ", unit,
           " (from ", first_val, " ", unit, " at ", format(time_summary$observation_time[1], "%d-%b %H:%M"),
-          " to ", last_val, " ", unit, " at ", format(time_summary$observation_time[nrow(time_summary)], "%d-%b %H:%M"), "). ",
-          "Limitation: Trajectory curves reflect genuine point observations without temporal smoothing."
+          " to ", last_val, " ", unit, " at ", format(time_summary$observation_time[nrow(time_summary)], "%d-%b %H:%M"), ")."
         )
+      }
+      
+      build_understand_chart(
+        chart_type = "Time-Series Multi-Line Chart",
+        what_shows = "This chart tracks chronological changes in ambient pollutant concentrations over time across individual monitoring stations, uncovering diurnal variations, meteorological dispersion, or pollution accumulation episodes.",
+        how_to_read = "The horizontal x-axis represents observation timestamps in Indian Standard Time (IST). The vertical y-axis plots pollutant concentration in its native unit (µg/m³ or mg/m³ for CO). Each line traces a specific monitoring station across successive readings. Hover over any point to view exact timestamp and concentration.",
+        colors_meaning = "Distinct categorical colours identify individual monitoring stations as defined in the chart legend.",
+        dynamic_findings = findings,
+        important_note = "Historical trajectories require genuine chronological snapshots. Interpolation or synthetic trend lines are strictly prohibited under CPCB data integrity standards."
       )
     })
     
@@ -751,39 +1022,50 @@ mod_trends_server <- function(id) {
         plotly::config(displayModeBar = FALSE)
     })
     
+    # Understand Station Delta Ranking Chart
     output$delta_interpretation <- renderUI({
       df <- filtered_trend_data() %>% filter(!is.na(pollutant_avg))
+      pol <- curr_pollutant()
+      unit <- ifelse(pol == "CO", "mg/m³", "µg/m³")
       times <- sort(unique(df$observation_time))
-      if (length(times) < 2) return(NULL)
       
-      t_first <- times[1]
-      t_last <- times[length(times)]
+      findings <- if (length(times) < 2) {
+        "Requires at least two distinct chronological observation snapshots to calculate net station-level shifts. Currently displaying the single-timestamp baseline (23-Oct-2026 18:00 IST)."
+      } else {
+        t_first <- times[1]
+        t_last <- times[length(times)]
+        
+        deltas <- df %>%
+          filter(observation_time %in% c(t_first, t_last)) %>%
+          group_by(station) %>%
+          filter(n_distinct(observation_time) == 2) %>%
+          summarise(
+            delta = pollutant_avg[observation_time == t_last] - pollutant_avg[observation_time == t_first],
+            .groups = "drop"
+          )
+        
+        if (nrow(deltas) == 0) {
+          "No co-located stations reported valid measurements across both observation timestamps."
+        } else {
+          inc_count <- sum(deltas$delta > 0)
+          dec_count <- sum(deltas$delta < 0)
+          tot <- nrow(deltas)
+          paste0(
+            "Among ", tot, " paired monitoring stations between ", format(t_first, "%d-%b %H:%M"),
+            " and ", format(t_last, "%d-%b %H:%M"), ": ",
+            inc_count, " stations (", round(100 * inc_count / tot, 1), "%) recorded increasing concentrations, while ",
+            dec_count, " stations (", round(100 * dec_count / tot, 1), "%) recorded decreasing concentrations."
+          )
+        }
+      }
       
-      deltas <- df %>%
-        filter(observation_time %in% c(t_first, t_last)) %>%
-        group_by(station) %>%
-        filter(n_distinct(observation_time) == 2) %>%
-        summarise(
-          delta = pollutant_avg[observation_time == t_last] - pollutant_avg[observation_time == t_first],
-          .groups = "drop"
-        )
-      
-      if (nrow(deltas) == 0) return(NULL)
-      
-      inc_count <- sum(deltas$delta > 0)
-      dec_count <- sum(deltas$delta < 0)
-      tot <- nrow(deltas)
-      
-      div(
-        class = "interpretation-box py-2 px-3 small mt-2",
-        icon("scale-balanced", class = "me-1 text-primary"),
-        strong("Shift Summary: "),
-        paste0(
-          "Among ", tot, " paired monitoring stations between ", format(t_first, "%d-%b %H:%M"),
-          " and ", format(t_last, "%d-%b %H:%M"), ": ",
-          inc_count, " stations (", round(100 * inc_count / tot, 1), "%) recorded increasing concentrations, while ",
-          dec_count, " stations (", round(100 * dec_count / tot, 1), "%) recorded decreasing concentrations."
-        )
+      build_understand_chart(
+        chart_type = "Diverging Horizontal Bar Chart",
+        what_shows = "This diverging bar chart ranks monitoring stations by their net concentration change (Δ = Latest Reading − Baseline Reading), highlighting the greatest worsening (spikes) and greatest improvements (dispersion).",
+        how_to_read = "The vertical y-axis lists individual stations. The horizontal x-axis measures the magnitude of change (Δ) in pollutant concentration. Bars extending to the right of zero indicate increasing pollution; bars extending to the left indicate decreasing pollution.",
+        colors_meaning = "Crimson / coral bars represent positive deltas (worsening air quality), while emerald green bars represent negative deltas (improving air quality).",
+        dynamic_findings = findings,
+        important_note = "Delta calculations require identical, collocated monitoring stations reporting valid measurements across both observation timestamps."
       )
     })
     
@@ -839,6 +1121,48 @@ mod_trends_server <- function(id) {
       suppressWarnings(ggplotly(p, tooltip = "text")) %>%
         layout(margin = list(l = 10, r = 10, t = 10, b = 20)) %>%
         plotly::config(displayModeBar = FALSE)
+    })
+    
+    # Understand State-Level Progression Chart
+    output$state_progression_interpretation <- renderUI({
+      df <- filtered_trend_data() %>% filter(!is.na(pollutant_avg))
+      pol <- curr_pollutant()
+      unit <- ifelse(pol == "CO", "mg/m³", "µg/m³")
+      times <- sort(unique(df$observation_time))
+      
+      findings <- if (length(times) < 2) {
+        "Requires multiple observation timestamps to compute state-level chronological trajectories. Currently gated in single-timestamp mode (23-Oct-2026 18:00 IST)."
+      } else {
+        top_states <- df %>% count(state, sort = TRUE) %>% head(8) %>% pull(state)
+        state_agg <- df %>%
+          filter(state %in% top_states) %>%
+          group_by(state, observation_time) %>%
+          summarise(mean_val = round(mean(pollutant_avg, na.rm = TRUE), 1), .groups = "drop") %>%
+          arrange(observation_time)
+        
+        latest_time <- max(times)
+        latest_ranks <- state_agg %>%
+          filter(observation_time == latest_time) %>%
+          arrange(desc(mean_val))
+        
+        highest_state <- latest_ranks$state[1]
+        highest_val <- latest_ranks$mean_val[1]
+        
+        paste0(
+          "Tracking ", length(top_states), " high-density states across ", length(times), " observation timestamps. ",
+          "At the latest snapshot (", format(latest_time, "%d-%b %H:%M"), " IST), ", highest_state,
+          " reported the highest mean concentration of ", pol, " at ", highest_val, " ", unit, "."
+        )
+      }
+      
+      build_understand_chart(
+        chart_type = "Multi-Series Trend Line Chart",
+        what_shows = "This chart tracks the aggregate mean concentration of the selected pollutant across top reporting states over successive observation timestamps, comparing regional-scale air quality trajectories.",
+        how_to_read = "The horizontal x-axis marks chronological timestamps. The vertical y-axis displays the state-wide mean pollutant concentration. Each colored line represents a distinct state or Union Territory. Hover over markers to see exact state averages at each timestamp.",
+        colors_meaning = "A plasma multi-hue palette assigns a unique color to each state for visual distinction.",
+        dynamic_findings = findings,
+        important_note = "State-wide averages aggregate heterogeneous urban and rural stations within a jurisdiction and should not be used as a proxy for localized personal exposure."
+      )
     })
     
     # 6.4 TAB 4: Longitudinal Data Table & Export

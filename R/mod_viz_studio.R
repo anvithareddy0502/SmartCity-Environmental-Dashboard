@@ -25,17 +25,11 @@ mod_viz_studio_ui <- function(id) {
     div(
       class = "container-fluid py-3",
       
-      # Top Provenance & Caveat Banner
+      # Clean Page Header
       div(
-        class = "alert alert-secondary d-flex align-items-center mb-3 py-2 px-3",
-        role = "alert",
-        icon("circle-info", class = "me-2 fs-5 text-primary"),
-        div(
-          class = "small",
-          strong("Analytical Dataset: "), "Central Pollution Control Board (CPCB) Baseline Snapshot (23-10-2026 18:00 IST) | ",
-          strong("Visualization Standard: "), "Cross-pollutant raw concentrations are never combined on shared numerical scales. ",
-          "Distributions preserve genuine NAs without zero-substitution. No synthetic historical or seasonal trends are reported."
-        )
+        class = "page-header-container mb-3",
+        h4(class = "page-header-title", "Visualization Studio"),
+        p(class = "page-header-sub", "Statistical distributions, particulate dynamics, and correlation analysis.")
       ),
       
       # Interactive Controls Card
@@ -47,7 +41,7 @@ mod_viz_studio_ui <- function(id) {
             width = 3,
             selectInput(
               inputId = ns("studio_filter_state"),
-              label = tags$span(icon("map-location", class = "me-1 text-primary"), "Geographic Scope (State):"),
+              label = "State / UT:",
               choices = c("All States", sort(unique(BASE_DATA$state))),
               selected = "All States",
               width = "100%"
@@ -57,7 +51,7 @@ mod_viz_studio_ui <- function(id) {
             width = 3,
             selectInput(
               inputId = ns("studio_filter_city"),
-              label = tags$span(icon("city", class = "me-1 text-primary"), "City Scope:"),
+              label = "City:",
               choices = c("All Cities", sort(unique(BASE_DATA$city))),
               selected = "All Cities",
               width = "100%"
@@ -67,7 +61,7 @@ mod_viz_studio_ui <- function(id) {
             width = 2,
             selectInput(
               inputId = ns("studio_filter_pollutant"),
-              label = tags$span(icon("smog", class = "me-1 text-primary"), "Target Pollutant:"),
+              label = "Pollutant:",
               choices = c(
                 "PM2.5" = "PM2.5",
                 "PM10"  = "PM10",
@@ -85,7 +79,7 @@ mod_viz_studio_ui <- function(id) {
             width = 2,
             selectInput(
               inputId = ns("studio_cor_method"),
-              label = tags$span(icon("calculator", class = "me-1 text-primary"), "Correlation Type:"),
+              label = "Correlation method:",
               choices = c(
                 "Pearson (Linear)" = "pearson",
                 "Spearman (Rank)" = "spearman"
@@ -100,7 +94,7 @@ mod_viz_studio_ui <- function(id) {
               style = "margin-top: 28px;",
               actionButton(
                 inputId = ns("btn_studio_reset"),
-                label = " Reset Filters",
+                label = "Reset filters",
                 icon = icon("rotate-left"),
                 class = "btn btn-outline-secondary w-100",
                 title = "Reset studio filters to national overview"
@@ -116,7 +110,7 @@ mod_viz_studio_ui <- function(id) {
         
         # TAB 1: Distributions & Dispersion (Box Plots & Density)
         nav_panel(
-          title = "Distributions & Dispersion",
+          title = "Comparative Distributions",
           icon = icon("chart-area"),
           div(
             class = "py-2",
@@ -128,7 +122,7 @@ mod_viz_studio_ui <- function(id) {
                   class = "card p-3 shadow-sm border-0 h-100",
                   div(
                     class = "d-flex justify-content-between align-items-center mb-1",
-                    h6(class = "card-title text-primary m-0", icon("chart-simple", class = "me-2"), textOutput(ns("boxplot_title"), inline = TRUE)),
+                    h6(class = "card-title m-0", textOutput(ns("boxplot_title"), inline = TRUE)),
                     span(class = "badge bg-light text-secondary border", textOutput(ns("boxplot_badge"), inline = TRUE))
                   ),
                   p(class = "small text-muted mb-2", "Box plots display median (central bar), interquartile range (IQR box), and Tukey whiskers (1.5×IQR). Points beyond whiskers represent statistical outliers."),
@@ -144,7 +138,7 @@ mod_viz_studio_ui <- function(id) {
                   class = "card p-3 shadow-sm border-0 h-100",
                   div(
                     class = "d-flex justify-content-between align-items-center mb-1",
-                    h6(class = "card-title text-primary m-0", icon("wave-square", class = "me-2"), textOutput(ns("density_title"), inline = TRUE)),
+                    h6(class = "card-title m-0", textOutput(ns("density_title"), inline = TRUE)),
                     span(class = "badge bg-light text-secondary border", "Probability Density")
                   ),
                   p(class = "small text-muted mb-2", "Kernel density estimation showing distribution spread, central tendency, and skewness profile."),
@@ -158,7 +152,7 @@ mod_viz_studio_ui <- function(id) {
         
         # TAB 2: Particulate Dynamics (PM2.5 vs PM10 Scatter & Mass Ratios)
         nav_panel(
-          title = "Particulate Dynamics (PM2.5 vs PM10)",
+          title = "PM2.5 vs PM10 Comparison",
           icon = icon("circle-nodes"),
           div(
             class = "py-2",
@@ -170,7 +164,7 @@ mod_viz_studio_ui <- function(id) {
                   class = "card p-3 shadow-sm border-0 h-100",
                   div(
                     class = "d-flex justify-content-between align-items-center mb-1",
-                    h6(class = "card-title text-primary m-0", icon("arrows-spin", class = "me-2"), "Respirable Particulate Scatter: PM2.5 vs PM10"),
+                    h6(class = "card-title m-0", "Respirable Particulate Scatter: PM2.5 vs PM10"),
                     span(class = "badge bg-light text-primary border", textOutput(ns("scatter_n_badge"), inline = TRUE))
                   ),
                   p(class = "small text-muted mb-2", "Fitted with ordinary least squares linear regression (blue line) and 1:1 reference line (dashed grey). Tooltip displays station coordinates and mass ratio."),
@@ -186,7 +180,7 @@ mod_viz_studio_ui <- function(id) {
                   class = "card p-3 shadow-sm border-0 h-100",
                   div(
                     class = "d-flex justify-content-between align-items-center mb-1",
-                    h6(class = "card-title text-primary m-0", icon("sliders", class = "me-2"), "Particulate Mass Ratio (PM2.5 / PM10)"),
+                    h6(class = "card-title m-0", "Particulate Mass Ratio (PM2.5 / PM10)"),
                     span(class = "badge bg-light text-secondary border", "Fine / Coarse Fraction")
                   ),
                   p(class = "small text-muted mb-2", "Distribution of the ratio of fine particles (PM2.5) to coarse respirable dust (PM10) across co-located stations."),
@@ -200,7 +194,7 @@ mod_viz_studio_ui <- function(id) {
         
         # TAB 3: Correlation Matrix & Pairwise Completeness
         nav_panel(
-          title = "Correlation Heatmap & Alignment",
+          title = "Correlation Heatmap",
           icon = icon("table-cells"),
           div(
             class = "py-2",
@@ -212,7 +206,7 @@ mod_viz_studio_ui <- function(id) {
                   class = "card p-3 shadow-sm border-0 h-100",
                   div(
                     class = "d-flex justify-content-between align-items-center mb-1",
-                    h6(class = "card-title text-primary m-0", icon("fire-flame-curved", class = "me-2"), textOutput(ns("heatmap_title"), inline = TRUE)),
+                    h6(class = "card-title m-0", textOutput(ns("heatmap_title"), inline = TRUE)),
                     span(class = "badge bg-light text-secondary border", textOutput(ns("heatmap_type_badge"), inline = TRUE))
                   ),
                   p(class = "small text-muted mb-2", "Pairwise correlation matrix computed across stations reporting valid measurements for both variables. Diverging scale from -1.0 (blue) to +1.0 (red)."),
@@ -228,7 +222,7 @@ mod_viz_studio_ui <- function(id) {
                   class = "card p-3 shadow-sm border-0 h-100",
                   div(
                     class = "d-flex justify-content-between align-items-center mb-1",
-                    h6(class = "card-title text-primary m-0", icon("clipboard-check", class = "me-2"), "Pairwise Co-located Sample Sizes (N)"),
+                    h6(class = "card-title m-0", "Pairwise Sample Sizes (N)"),
                     span(class = "badge bg-light text-secondary border", "Reporting Alignment")
                   ),
                   p(class = "small text-muted mb-2", "Number of stations concurrently reporting both criteria pollutants. Discloses missingness limitations for correlation analysis."),
@@ -246,7 +240,7 @@ mod_viz_studio_ui <- function(id) {
         
         # TAB 4: Multi-Pollutant Profiles (Small Multiples & Parallel Coordinates)
         nav_panel(
-          title = "Small Multiples & Parallel Coordinates",
+          title = "Multi-Pollutant Profiles",
           icon = icon("network-wired"),
           div(
             class = "py-2",
@@ -258,7 +252,7 @@ mod_viz_studio_ui <- function(id) {
                   class = "card p-3 shadow-sm border-0 h-100",
                   div(
                     class = "d-flex justify-content-between align-items-center mb-1",
-                    h6(class = "card-title text-primary m-0", icon("cubes", class = "me-2"), "Small Multiples: Minimum, Average & Maximum by Pollutant"),
+                    h6(class = "card-title m-0", "Small Multiples: Minimum, Average & Maximum"),
                     span(class = "badge bg-light text-secondary border", "Independent Scales")
                   ),
                   p(class = "small text-muted mb-2", "Faceted panels display reported metrics on independent y-axes with proper units, preventing misleading cross-scale comparisons."),
@@ -274,7 +268,7 @@ mod_viz_studio_ui <- function(id) {
                   class = "card p-3 shadow-sm border-0 h-100",
                   div(
                     class = "d-flex justify-content-between align-items-center mb-1",
-                    h6(class = "card-title text-primary m-0", icon("diagram-project", class = "me-2"), "Parallel Coordinates Profile (Station Signatures)"),
+                    h6(class = "card-title m-0", "Parallel Coordinates Profile (Station Signatures)"),
                     span(class = "badge bg-light text-primary border", "Min-Max Normalized [0, 1]")
                   ),
                   p(class = "small text-muted mb-2", "Interactive multi-axis profile. To compare different pollutant units, values are normalized to [0, 1] via: (x - min) / (max - min). Drag along axes to filter lines."),
@@ -314,10 +308,11 @@ mod_viz_studio_server <- function(id) {
     
     # 2. Cascading City Filter Update
     observeEvent(input$studio_filter_state, {
+      req(input$studio_filter_state)
       st <- curr_state()
       ct <- curr_city()
       
-      if (st == "All States") {
+      if (identical(st, "All States")) {
         cities <- c("All Cities", sort(unique(BASE_DATA$city)))
       } else {
         cities <- c("All Cities", sort(unique(BASE_DATA$city[BASE_DATA$state == st])))
@@ -341,8 +336,8 @@ mod_viz_studio_server <- function(id) {
       df <- BASE_DATA
       st <- curr_state()
       ct <- curr_city()
-      if (st != "All States") df <- df %>% filter(state == st)
-      if (ct != "All Cities") df <- df %>% filter(city == ct)
+      if (!identical(st, "All States")) df <- df %>% filter(state == st)
+      if (!identical(ct, "All Cities")) df <- df %>% filter(city == ct)
       df
     })
     
@@ -351,8 +346,8 @@ mod_viz_studio_server <- function(id) {
       df <- WIDE_DATA
       st <- curr_state()
       ct <- curr_city()
-      if (st != "All States") df <- df %>% filter(state == st)
-      if (ct != "All Cities") df <- df %>% filter(city == ct)
+      if (!identical(st, "All States")) df <- df %>% filter(state == st)
+      if (!identical(ct, "All Cities")) df <- df %>% filter(city == ct)
       df
     })
     
@@ -450,7 +445,16 @@ mod_viz_studio_server <- function(id) {
       st <- curr_state()
       
       sub_df <- df %>% filter(pollutant_id == pol, !is.na(pollutant_avg))
-      if (nrow(sub_df) < 3) return(NULL)
+      if (nrow(sub_df) < 3) {
+        return(build_understand_chart(
+          chart_type = "Box Plot (Distribution & Dispersion)",
+          what_shows = paste0("Compares the statistical distribution of ", pol, " across reporting states or cities."),
+          how_to_read = "The horizontal axis lists geographic regions; the vertical axis shows concentration in the pollutant's unit. The box shows the IQR (25th to 75th percentiles) with the central line at the median.",
+          colors_meaning = "Distinct colors identify different geographic regions; red points mark statistical outliers.",
+          dynamic_findings = "Insufficient observations to construct comparative box plots (fewer than 3 valid readings).",
+          important_note = "Reset filters to include additional stations or states."
+        ))
+      }
       
       group_col <- if (st == "All States") "state" else "city"
       top_groups <- sub_df %>% count(.data[[group_col]], sort = TRUE) %>% head(6) %>% pull(.data[[group_col]])
@@ -460,6 +464,8 @@ mod_viz_studio_server <- function(id) {
         summarise(
           med = median(pollutant_avg),
           iqr_val = IQR(pollutant_avg),
+          q1 = quantile(pollutant_avg, 0.25),
+          q3 = quantile(pollutant_avg, 0.75),
           n = n(),
           .groups = "drop"
         ) %>%
@@ -472,14 +478,44 @@ mod_viz_studio_server <- function(id) {
       lo_grp <- stats[[group_col]][nrow(stats)]
       lo_med <- round(stats$med[nrow(stats)], 1)
       
-      div(
-        class = "interpretation-box py-1 px-2 small mt-2",
-        icon("magnifying-glass-chart", class = "me-1 text-primary"),
-        strong("Distribution Finding: "),
-        paste0(
-          "Among the evaluated regions, ", hi_grp, " exhibits the highest median reported ", pol,
-          " (", hi_med, " ", unit, "), while ", lo_grp, " records the lowest (", lo_med, " ", unit, "). ",
-          "Outliers highlighted in red represent localized monitoring stations with readings exceeding 1.5× the regional interquartile range."
+      # Count outliers beyond 1.5x IQR
+      n_outliers <- sum(sapply(seq_len(nrow(stats)), function(i) {
+        g <- stats[[group_col]][i]
+        vals <- sub_df$pollutant_avg[sub_df[[group_col]] == g]
+        upper <- stats$q3[i] + 1.5 * stats$iqr_val[i]
+        lower <- stats$q1[i] - 1.5 * stats$iqr_val[i]
+        sum(vals > upper | vals < lower)
+      }))
+      
+      finding <- paste0(
+        "Among the top ", nrow(stats), " evaluated ", if (st == "All States") "states" else "cities", ", ",
+        hi_grp, " exhibits the highest median reported ", pol, " concentration at ", hi_med, " ", unit,
+        " (IQR: ", round(stats$iqr_val[1], 1), " ", unit, "), while ", lo_grp, " records the lowest median at ",
+        lo_med, " ", unit, ". ",
+        if (n_outliers > 0) {
+          paste0(n_outliers, " station observation(s) exceed 1.5× the regional IQR (flagged as red points).")
+        } else {
+          "No extreme outliers beyond 1.5× IQR are detected across these regions."
+        }
+      )
+      
+      build_understand_chart(
+        chart_type = "Box Plot (Distribution & Dispersion)",
+        what_shows = paste0(
+          "Compares the statistical distribution, median, spread, and dispersion of ", pol,
+          " across top reporting ", if (st == "All States") "states" else "cities",
+          ". Demonstrates regional variability without assuming a normal distribution."
+        ),
+        how_to_read = paste0(
+          "The horizontal axis displays geographic entities. The vertical axis measures concentration in ", unit, ". ",
+          "The thick central line marks the median (50th percentile); the box covers the Interquartile Range (IQR, 25th to 75th percentiles); ",
+          "whiskers extend to the most extreme data point within 1.5×IQR. Red points beyond whiskers indicate statistical outliers."
+        ),
+        colors_meaning = "Boxes use distinct categorical colors per geographic entity to aid visual separation. Outlier points are plotted in red.",
+        dynamic_findings = finding,
+        important_note = paste0(
+          "Reflects single-snapshot station distributions (23-10-2026 18:00 IST). ",
+          "A taller box indicates high intra-regional variation among monitoring stations. Statistical outliers represent localized severe hotspots."
         )
       )
     })
@@ -534,20 +570,44 @@ mod_viz_studio_server <- function(id) {
       unit <- ifelse(pol == "CO", "mg/m³", "µg/m³")
       
       sub_df <- df %>% filter(pollutant_id == pol, !is.na(pollutant_avg))
-      if (nrow(sub_df) < 5) return(NULL)
+      if (nrow(sub_df) < 5) {
+        return(build_understand_chart(
+          chart_type = "Kernel Density Plot (Probability Distribution)",
+          what_shows = paste0("Estimates the continuous probability distribution of ", pol, " across reporting stations."),
+          how_to_read = "The horizontal axis shows concentration; the vertical axis shows probability density.",
+          colors_meaning = "Teal shading highlights density mass; blue dashed line indicates median; red dotted line marks mean.",
+          dynamic_findings = "Insufficient observations to estimate a reliable continuous density distribution (fewer than 5 valid readings).",
+          important_note = "Reset filters to National Overview to view full density estimation."
+        ))
+      }
       
       vals <- sub_df$pollutant_avg
       mean_v <- round(mean(vals), 1)
       med_v <- round(median(vals), 1)
       skew_direction <- if (mean_v > med_v * 1.05) "positive (right) skew" else if (mean_v < med_v * 0.95) "negative (left) skew" else "approximate symmetry"
       
-      div(
-        class = "interpretation-box py-1 px-2 small mt-2",
-        icon("chart-line", class = "me-1 text-primary"),
-        strong("Skewness Profile: "),
-        paste0(
-          "The density curve exhibits a ", skew_direction, " (Mean: ", mean_v, " ", unit,
-          " vs Median: ", med_v, " ", unit, "). The concentration mass is centered around the median with a tail of higher readings."
+      finding <- paste0(
+        "The probability distribution exhibits a pronounced ", skew_direction, " across ", length(vals), " reporting stations. ",
+        "The arithmetic mean is ", mean_v, " ", unit, ", pulled higher than the median of ", med_v, " ", unit, " by an upper tail of extreme readings. ",
+        "The central mass of stations is concentrated around ", med_v, " ", unit, "."
+      )
+      
+      build_understand_chart(
+        chart_type = "Kernel Density Plot (Probability Distribution)",
+        what_shows = paste0(
+          "Estimates the continuous probability density function of reported ", pol, " concentrations. ",
+          "Visualizes the shape, spread, central tendency, and skewness of the underlying environmental data."
+        ),
+        how_to_read = paste0(
+          "The horizontal axis represents reported concentration in ", unit, ". ",
+          "The vertical axis indicates relative probability density (total area under the curve integrates to 1.0). ",
+          "The blue dashed vertical line marks the sample median; the red dotted vertical line marks the arithmetic mean."
+        ),
+        colors_meaning = "The shaded teal area (#0D9488) represents the estimated probability mass. The dashed blue line marks the median, and the dotted red line marks the arithmetic mean.",
+        dynamic_findings = finding,
+        important_note = paste0(
+          "In environmental datasets, positive (right) skew is common due to localized severe pollution episodes. ",
+          "Because extreme high readings pull the arithmetic mean upward, the median is a more robust indicator of typical ambient exposure."
         )
       )
     })
@@ -586,7 +646,7 @@ mod_viz_studio_server <- function(id) {
         # Linear Regression line
         geom_smooth(method = "lm", formula = y ~ x, color = "#1E3A8A", fill = "#BFDBFE", alpha = 0.3, linewidth = 0.9) +
         # Scatter points
-        geom_point(aes(text = hover_txt, color = ratio), size = 2.2, alpha = 0.8) +
+        suppressWarnings(geom_point(aes(text = hover_txt, color = ratio), size = 2.2, alpha = 0.8)) +
         scale_color_viridis_c(option = "plasma", name = "PM2.5/PM10 Ratio") +
         coord_cartesian(xlim = c(0, max_axis), ylim = c(0, max_axis)) +
         labs(
@@ -609,22 +669,42 @@ mod_viz_studio_server <- function(id) {
     output$scatter_interpretation <- renderUI({
       w <- filtered_studio_wide()
       scat_df <- w %>% filter(!is.na(PM2.5) & !is.na(PM10) & PM10 > 0)
-      if (nrow(scat_df) < 3) return(NULL)
+      if (nrow(scat_df) < 3) {
+        return(build_understand_chart(
+          chart_type = "Scatter Plot with Linear Regression",
+          what_shows = "Compares fine particulate PM2.5 against coarse respirable PM10 across co-located monitoring stations.",
+          how_to_read = "The horizontal axis measures PM10; the vertical axis measures PM2.5. The solid blue line shows OLS linear regression; the dashed grey line represents 1:1 equality.",
+          colors_meaning = "Points are colored by their individual PM2.5/PM10 mass ratio using a continuous plasma palette.",
+          dynamic_findings = "Insufficient co-located PM2.5 and PM10 observations in the current filter scope to compute regression parameters.",
+          important_note = "Reset filters to include additional stations or states with co-located particulate monitors."
+        ))
+      }
       
       cor_val <- round(cor(scat_df$PM10, scat_df$PM2.5), 3)
       fit <- lm(PM2.5 ~ PM10, data = scat_df)
       r2 <- round(summary(fit)$r.squared, 3)
       slope <- round(coef(fit)[2], 2)
       
-      div(
-        class = "interpretation-box py-1 px-2 small mt-2",
-        icon("calculator", class = "me-1 text-primary"),
-        strong("Regression & Co-occurrence Finding: "),
-        paste0(
-          "Across N = ", nrow(scat_df), " co-located stations, Pearson correlation r = ", cor_val,
-          " (R² = ", r2, ", Slope = ", slope, "). ",
-          "A strong linear co-occurrence is observed between PM10 and PM2.5. ",
-          "The dashed line represents the physical 1:1 boundary (PM2.5 = PM10). Statistical correlation indicates shared dispersal patterns and does not establish a causal mechanism."
+      finding <- paste0(
+        "Across N = ", nrow(scat_df), " co-located stations, Pearson correlation is r = ", cor_val,
+        " (R² = ", r2, ", Slope = ", slope, "). ",
+        "A strong positive linear association indicates that stations with elevated coarse PM10 consistently experience elevated fine PM2.5. ",
+        "Points cluster below the 1:1 dashed line, adhering to physical atmospheric constraints (PM2.5 is a physical fraction of PM10)."
+      )
+      
+      build_understand_chart(
+        chart_type = "Scatter Plot with Linear Regression",
+        what_shows = "Examines the empirical relationship and mass ratio between fine particulates (PM2.5) and coarse respirable dust (PM10) across concurrently monitoring stations.",
+        how_to_read = paste0(
+          "The horizontal axis measures PM10 (µg/m³); the vertical axis measures PM2.5 (µg/m³). ",
+          "Each point represents a co-located monitoring station. The solid navy line is the Ordinary Least Squares (OLS) regression fit; ",
+          "the dashed diagonal line is the 1:1 physical upper limit boundary (PM2.5 = PM10). Hover over any point to see station details."
+        ),
+        colors_meaning = "Points are colored along a continuous plasma palette mapped to the fine-to-coarse ratio (PM2.5 / PM10), where purple indicates higher fine-particle proportions.",
+        dynamic_findings = finding,
+        important_note = paste0(
+          "Linear correlation indicates shared atmospheric dispersion and emission co-occurrence; it does not demonstrate that PM10 causes PM2.5. ",
+          "Physically, PM2.5 cannot exceed PM10 in ambient air; anomalies above the 1:1 boundary reflect localized sensor calibration drift."
         )
       )
     })
@@ -672,20 +752,37 @@ mod_viz_studio_server <- function(id) {
     output$pm_ratio_interpretation <- renderUI({
       w <- filtered_studio_wide()
       scat_df <- w %>% filter(!is.na(PM2.5) & !is.na(PM10) & PM10 > 0)
-      if (nrow(scat_df) < 3) return(NULL)
+      if (nrow(scat_df) < 3) {
+        return(build_understand_chart(
+          chart_type = "Histogram (Frequency Distribution)",
+          what_shows = "Displays the distribution of PM2.5/PM10 particulate mass ratios across co-located stations.",
+          how_to_read = "The horizontal axis shows bins of mass ratios; the vertical axis indicates station count.",
+          colors_meaning = "Uniform blue bars indicate frequency count; red dashed line marks the median ratio.",
+          dynamic_findings = "Insufficient paired measurements to evaluate the PM2.5/PM10 ratio distribution.",
+          important_note = "Requires co-located monitoring stations reporting both particulate sizes concurrently."
+        ))
+      }
       
       scat_df$ratio <- scat_df$PM2.5 / scat_df$PM10
       med_ratio <- round(median(scat_df$ratio), 2)
       pct_fine_predom <- round(100 * sum(scat_df$ratio >= 0.5) / nrow(scat_df), 1)
       
-      div(
-        class = "interpretation-box py-1 px-2 small mt-2",
-        icon("chart-pie", class = "me-1 text-primary"),
-        strong("Aerosol Composition Finding: "),
-        paste0(
-          "The median PM2.5/PM10 ratio is ", med_ratio, ". In ", pct_fine_predom,
-          "% of reporting stations, the ratio exceeds 0.50, indicating that fine respirable particulates comprise the dominant portion of particulate matter across these monitors."
-        )
+      finding <- paste0(
+        "Across ", nrow(scat_df), " reporting monitors, the median PM2.5/PM10 mass ratio is ", med_ratio, ". ",
+        "In ", pct_fine_predom, "% of stations, the ratio exceeds 0.50, demonstrating that combustion-derived fine particles (PM2.5) ",
+        "constitute the principal fraction of respirable particulate pollution across these urban and industrial environments."
+      )
+      
+      build_understand_chart(
+        chart_type = "Histogram (Frequency Distribution)",
+        what_shows = "Visualizes the frequency distribution of fine-to-coarse particulate mass ratios (PM2.5/PM10) across co-located monitors to assess aerosol origin (combustion vs crustal dust).",
+        how_to_read = paste0(
+          "The horizontal axis bins the PM2.5/PM10 ratio into intervals of 0.05. The vertical axis shows the number of stations in each bin. ",
+          "The red dashed line marks the median ratio across all stations; the grey dotted vertical line marks the 0.50 threshold."
+        ),
+        colors_meaning = "All bars are colored in uniform blue (#0284C7) to represent frequency. The red dashed line highlights the median ratio.",
+        dynamic_findings = finding,
+        important_note = "A high ratio (>0.6) typically reflects secondary aerosol formation and vehicular combustion emissions, whereas low ratios (<0.4) reflect mechanical crustal sources such as road dust and construction."
       )
     })
     
@@ -749,15 +846,16 @@ mod_viz_studio_server <- function(id) {
       m_type <- curr_cor_method()
       mat_data <- w %>% select(all_of(pol_cols))
       cor_mat <- cor(mat_data, use = "pairwise.complete.obs", method = m_type)
-      
-      # Exclude diagonal
       diag(cor_mat) <- NA
       
       if (all(is.na(cor_mat)) || sum(!is.na(cor_mat)) == 0) {
-        return(div(
-          class = "interpretation-box py-1 px-2 small mt-2 text-muted",
-          icon("info-circle", class = "me-1 text-secondary"),
-          "Insufficient co-located observations in this selection to calculate pairwise correlation coefficients."
+        return(build_understand_chart(
+          chart_type = "Correlation Matrix Heatmap",
+          what_shows = "Displays pairwise correlation coefficients between all 7 criteria pollutants.",
+          how_to_read = "Cells display correlation coefficients from -1.0 to +1.0. Red shades denote positive co-movement; blue indicates inverse relationships.",
+          colors_meaning = "Diverging Red-to-Blue scale: Dark red indicates strong positive correlation (+1.0); dark blue indicates strong negative correlation (-1.0).",
+          dynamic_findings = "Insufficient co-located observations across criteria pollutants in this selection to calculate pairwise correlation coefficients.",
+          important_note = "Reset filters to include additional stations with multi-pollutant monitors."
         ))
       }
       
@@ -770,15 +868,30 @@ mod_viz_studio_server <- function(id) {
       lo_p1 <- pol_cols[min_idx[1]]; lo_p2 <- pol_cols[min_idx[2]]
       lo_r <- round(cor_mat[min_idx[1], min_idx[2]], 2)
       
-      div(
-        class = "interpretation-box py-1 px-2 small mt-2",
-        icon("circle-nodes", class = "me-1 text-primary"),
-        strong("Correlation Finding: "),
-        paste0(
-          "Strongest co-movement is observed between ", hi_p1, " and ", hi_p2,
-          " (r = ", hi_r, "), reflecting shared atmospheric particulate behavior. ",
-          "Weakest correlation occurs between ", lo_p1, " and ", lo_p2, " (r = ", lo_r, "). ",
-          "Limitations: Correlations are computed strictly from pairwise co-located monitors without imputing missing values."
+      # Sample sizes for top pair
+      n_hi <- sum(!is.na(mat_data[[hi_p1]]) & !is.na(mat_data[[hi_p2]]))
+      
+      finding <- paste0(
+        "Strongest positive co-movement is observed between ", hi_p1, " and ", hi_p2,
+        " (r = ", hi_r, ", N = ", n_hi, " co-located stations), reflecting shared atmospheric stagnation and dispersion dynamics. ",
+        "The weakest / most divergent association is between ", lo_p1, " and ", lo_p2, " (r = ", lo_r, ")."
+      )
+      
+      build_understand_chart(
+        chart_type = "Correlation Matrix Heatmap",
+        what_shows = paste0(
+          "Calculates pairwise ", if (m_type == "pearson") "linear (Pearson)" else "monotonic rank (Spearman)",
+          " correlation coefficients across all 7 criteria pollutants using pairwise complete station observations."
+        ),
+        how_to_read = paste0(
+          "Rows and columns represent criteria pollutants. Each square cell shows the correlation coefficient for that pair, ",
+          "bounded between -1.0 (inverse association) and +1.0 (synchronized co-movement). Hover over any cell to see exact correlation and co-located station count (N)."
+        ),
+        colors_meaning = "Diverging Red-to-Blue palette: Dark red indicates strong positive correlation (+1.0), light shades denote near-zero correlation (0.0), and blue indicates negative correlation (-1.0).",
+        dynamic_findings = finding,
+        important_note = paste0(
+          "Correlations are computed pairwise without replacing missing sensor values with zeros. ",
+          "Statistical correlation measures atmospheric co-occurrence; it does not prove chemical transformation or causal dependency."
         )
       )
     })
@@ -867,11 +980,43 @@ mod_viz_studio_server <- function(id) {
     
     # Dynamic Small Multiples Interpretation
     output$small_multiples_interpretation <- renderUI({
-      div(
-        class = "interpretation-box py-1 px-2 small mt-2",
-        icon("layer-group", class = "me-1 text-primary"),
-        strong("Methodological Integrity: "),
-        "Small multiples prevent deceptive scaling by assigning independent free axes to each pollutant. Particulates (PM10/PM2.5) scale to hundreds of µg/m³, while trace gases (NH3/SO2) and carbon monoxide (mg/m³) occupy distinct biological and measurement ranges."
+      df <- filtered_studio_long()
+      
+      agg <- df %>%
+        group_by(pollutant_id) %>%
+        summarise(
+          mean_val = round(mean(pollutant_avg, na.rm = TRUE), 1),
+          max_val = suppressWarnings(max(pollutant_max, na.rm = TRUE)),
+          .groups = "drop"
+        )
+      
+      pm25_row <- agg %>% filter(pollutant_id == "PM2.5")
+      pm10_row <- agg %>% filter(pollutant_id == "PM10")
+      co_row   <- agg %>% filter(pollutant_id == "CO")
+      so2_row  <- agg %>% filter(pollutant_id == "SO2")
+      
+      pm25_txt <- if (nrow(pm25_row) > 0 && !is.na(pm25_row$mean_val)) paste0(pm25_row$mean_val, " µg/m³") else "NA"
+      pm10_txt <- if (nrow(pm10_row) > 0 && !is.na(pm10_row$mean_val)) paste0(pm10_row$mean_val, " µg/m³") else "NA"
+      co_txt   <- if (nrow(co_row) > 0 && !is.na(co_row$mean_val)) paste0(co_row$mean_val, " mg/m³") else "NA"
+      so2_txt  <- if (nrow(so2_row) > 0 && !is.na(so2_row$mean_val)) paste0(so2_row$mean_val, " µg/m³") else "NA"
+      
+      finding <- paste0(
+        "Criteria pollutants span vastly different numerical ranges: particulate averages reach ", pm10_txt, " (PM10) and ",
+        pm25_txt, " (PM2.5), whereas trace gaseous species such as SO2 average ", so2_txt, " and carbon monoxide operates at ",
+        co_txt, " (mg/m³). Independent panel axes preserve visibility for all seven metrics."
+      )
+      
+      build_understand_chart(
+        chart_type = "Small Multiples (Faceted Bar Charts)",
+        what_shows = "Displays reported minimum, average, and maximum concentrations across all 7 criteria pollutants simultaneously using independent, dedicated panel scales.",
+        how_to_read = paste0(
+          "Each faceted panel represents one criteria pollutant with its proper unit (µg/m³ or mg/m³). ",
+          "Within each panel, three bars compare reported minimum, average, and maximum values across the filtered stations. ",
+          "Because vertical axes scale independently, examine bar heights relative to that pollutant's own axis."
+        ),
+        colors_meaning = "Bars use a semantic metric color palette: Teal (#0D9488) for Minimum Reported, Navy Blue (#1E3A8A) for Average Reported, and Crimson Red (#DC2626) for Maximum Reported.",
+        dynamic_findings = finding,
+        important_note = "Independent vertical scales are methodologically mandatory. Placing CO (mg/m³) or SO2 on a shared axis with PM10 (µg/m³) would compress trace gases into visual invisibility and violate dimensional integrity."
       )
     })
     
@@ -925,11 +1070,40 @@ mod_viz_studio_server <- function(id) {
     
     # Dynamic Parallel Coordinates Interpretation
     output$parcoords_interpretation <- renderUI({
-      div(
-        class = "interpretation-box py-1 px-2 small mt-2",
-        icon("sliders", class = "me-1 text-primary"),
-        strong("Multi-Dimensional Signature Finding: "),
-        "Parallel coordinates trace multi-pollutant signatures for each station simultaneously. Lines colored towards yellow/bright green indicate stations with elevated fine particulate burdens. Notice how elevated PM lines diverge across NO2 and SO2 depending on localized industrial vs vehicular signatures."
+      w <- filtered_studio_wide()
+      pol_cols <- c("CO", "NH3", "NO2", "OZONE", "PM10", "PM2.5", "SO2")
+      valid_rows <- w %>% filter(rowSums(!is.na(select(., all_of(pol_cols)))) >= 4) %>% head(100)
+      
+      if (nrow(valid_rows) < 3) {
+        return(build_understand_chart(
+          chart_type = "Parallel Coordinates Plot (Multivariate Profile)",
+          what_shows = "Traces multi-pollutant multivariate signatures across 7 parallel vertical axes.",
+          how_to_read = "Each line represents one station crossing all pollutant axes. Drag along any axis to filter.",
+          colors_meaning = "Continuous Viridis palette colored by PM2.5 concentration (purple = low, yellow = high).",
+          dynamic_findings = "Fewer than 3 stations in the active filter selection report at least 4 criteria pollutants concurrently.",
+          important_note = "Reset filters to include additional multi-pollutant monitoring stations."
+        ))
+      }
+      
+      med_pm25 <- round(median(valid_rows$PM2.5, na.rm = TRUE), 1)
+      hi_pm25_n <- sum(valid_rows$PM2.5 > 100, na.rm = TRUE)
+      
+      finding <- paste0(
+        "Traces multivariate signatures across N = ", nrow(valid_rows), " stations reporting ≥4 pollutants concurrently. ",
+        "Median PM2.5 across these stations is ", med_pm25, " µg/m³, with ", hi_pm25_n, " stations recording elevated fine particulate burdens (>100 µg/m³, highlighted in bright yellow/green). ",
+        "Stations with elevated particulates exhibit divergent gaseous signatures (e.g., high NO2 reflecting traffic vs high SO2 reflecting industrial combustion)."
+      )
+      
+      build_understand_chart(
+        chart_type = "Parallel Coordinates Plot (Multivariate Profile)",
+        what_shows = "Visualizes high-dimensional, multi-pollutant ambient signatures for individual monitoring stations across 7 parallel vertical axes simultaneously.",
+        how_to_read = paste0(
+          "Each vertical axis corresponds to one criteria pollutant calibrated to its native range and measurement unit. ",
+          "Each continuous line represents an individual monitoring station. Interactive brush selection: click and drag vertically on any axis to filter and isolate stations."
+        ),
+        colors_meaning = "Lines are colored along a continuous Viridis gradient by PM2.5 concentration: purple lines denote low PM2.5, green indicates moderate, and yellow highlights high PM2.5.",
+        dynamic_findings = finding,
+        important_note = "To maintain visual clarity, stations with fewer than 4 reported pollutants are excluded to prevent disjointed lines. Each axis operates on its native measurement scale."
       )
     })
     
